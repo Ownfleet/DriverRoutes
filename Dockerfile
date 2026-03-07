@@ -1,9 +1,9 @@
-FROM php:8.2-apache
+FROM php:8.2-cli
 
-RUN sed -i "s/80/\${PORT}/g" /etc/apache2/ports.conf /etc/apache2/sites-available/000-default.conf
+WORKDIR /app
 
-WORKDIR /var/www/html
+COPY . .
 
-COPY public/ /var/www/html/
+EXPOSE 8080
 
-EXPOSE 80
+CMD php -S 0.0.0.0:$PORT -t public
