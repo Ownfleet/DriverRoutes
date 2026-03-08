@@ -1,19 +1,16 @@
 <?php
-session_start();
 
-if (empty($_SESSION['admin_email'])) {
-    header('Location: /admin-login.php');
-    exit;
-}
-
+require_once __DIR__ . '/admin-guard.php';
 require_once __DIR__ . '/supabase.php';
 
-function voltar($msg) {
+requireAdmin(true);
+
+function voltar(string $msg): void {
     header('Location: /admin.php?msg=' . urlencode($msg));
     exit;
 }
 
-function rotaJaExiste($driverId, $cluster, $turno, $dataHoje) {
+function rotaJaExiste(string $driverId, string $cluster, string $turno, string $dataHoje): bool {
     $exists = supabaseRequest(
         'GET',
         '/rest/v1/route_offers?driver_id=eq.' . urlencode($driverId)
@@ -30,21 +27,18 @@ function rotaJaExiste($driverId, $cluster, $turno, $dataHoje) {
 
 $dataHoje = date('Y-m-d');
 
-/**
- * =========================
- * ROTA MANUAL
- * =========================
- */
+/* =========================
+   ROTA MANUAL
+   ========================= */
 if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
     $driverId = trim($_POST['driver_id'] ?? '');
     $cluster  = trim($_POST['cluster'] ?? '');
     $turno    = trim($_POST['turno'] ?? '');
 
-    if (!$driverId || !$cluster || !$turno) {
+    if ($driverId === '' || $cluster === '' || $turno === '') {
         voltar('Preencha Driver ID, Cluster e Turno.');
     }
 
-    // verifica se motorista existe
     $driverRes = supabaseRequest(
         'GET',
         '/rest/v1/drivers?driver_id=eq.' . urlencode($driverId) . '&select=driver_id',
@@ -56,7 +50,6 @@ if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
         voltar('Driver ID não encontrado na base de motoristas.');
     }
 
-    // bloqueia duplicidade
     if (rotaJaExiste($driverId, $cluster, $turno, $dataHoje)) {
         voltar('Essa rota já foi enviada para esse motorista hoje.');
     }
@@ -83,12 +76,10 @@ if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
     voltar('Erro ao criar rota manual.');
 }
 
-/**
- * =========================
- * IMPORTAÇÃO CSV
- * =========================
- */
-$tmpPath = $_FILES['file']['tmp_name'];
+/* =========================
+   IMPORTAÇÃO CSV
+   ========================= */
+$tmpPath = $_FILES['file']['tmp_name'] ?? '';
 $originalName = $_FILES['file']['name'] ?? '';
 
 $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
@@ -107,9 +98,7 @@ if (!$header) {
     voltar('CSV vazio ou inválido.');
 }
 
-$header = array_map(function($h) {
-    return strtolower(trim($h));
-}, $header);
+$header = array_map(fn($h) => strtolower(trim($h)), $header);
 
 $idxDriver = array_search('driver_id', $header);
 $idxCluster = array_search('cluster', $header);
@@ -134,7 +123,6 @@ while (($row = fgetcsv($handle)) !== false) {
         continue;
     }
 
-    // verifica se motorista existe
     $driverRes = supabaseRequest(
         'GET',
         '/rest/v1/drivers?driver_id=eq.' . urlencode($driverId) . '&select=driver_id',
@@ -147,7 +135,6 @@ while (($row = fgetcsv($handle)) !== false) {
         continue;
     }
 
-    // bloqueia duplicidade
     if (rotaJaExiste($driverId, $cluster, $turno, $dataHoje)) {
         $duplicadas++;
         continue;

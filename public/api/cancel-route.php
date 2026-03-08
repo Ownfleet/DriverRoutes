@@ -1,12 +1,9 @@
 <?php
-session_start();
 
-if (empty($_SESSION['admin_email'])) {
-    header('Location: /admin-login.php');
-    exit;
-}
-
+require_once __DIR__ . '/admin-guard.php';
 require_once __DIR__ . '/supabase.php';
+
+requireAdmin(true);
 
 $routeId = (int)($_POST['route_id'] ?? 0);
 

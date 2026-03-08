@@ -1,21 +1,17 @@
 <?php
-session_start();
 
-if (empty($_SESSION['admin_email'])) {
-    header('Location: /admin-login.php');
-    exit;
-}
-
+require_once __DIR__ . '/admin-guard.php';
 require_once __DIR__ . '/supabase.php';
+
+requireAdmin(true);
 
 $driverId = trim($_POST['driver_id'] ?? '');
 
-if (!$driverId) {
+if ($driverId === '') {
     header('Location: /admin.php?msg=' . urlencode('Informe o Driver ID.'));
     exit;
 }
 
-// Apaga o vínculo do motorista na tabela driver_accounts
 $res = supabaseRequest(
     'DELETE',
     '/rest/v1/driver_accounts?driver_id=eq.' . urlencode($driverId),
