@@ -75,12 +75,6 @@
       font-size:15px;
       background:#fff;
       outline:none;
-      transition:border-color .18s ease, box-shadow .18s ease;
-    }
-
-    input:focus{
-      border-color:rgba(238,77,45,.55);
-      box-shadow:0 0 0 4px rgba(238,77,45,.12);
     }
 
     button{
@@ -94,19 +88,20 @@
       font-weight:800;
       cursor:pointer;
       box-shadow:0 12px 20px rgba(238,77,45,.18);
-      transition:transform .18s ease, opacity .18s ease;
     }
 
-    button:hover{
-      opacity:.95;
-      transform:translateY(-1px);
+    .msg{
+      display:none;
+      margin-bottom:14px;
+      padding:12px 14px;
+      border-radius:14px;
+      font-size:14px;
+      font-weight:600;
     }
 
-    button:disabled{
-      opacity:.7;
-      cursor:not-allowed;
-      transform:none;
-    }
+    .msg.show{ display:block; }
+    .msg.err{ background:var(--err-bg); color:var(--err); }
+    .msg.ok{ background:var(--ok-bg); color:var(--ok); }
 
     a{
       display:block;
@@ -117,35 +112,7 @@
       font-weight:700;
     }
 
-    a:hover{
-      text-decoration:underline;
-    }
-
-    .msg{
-      display:none;
-      margin-bottom:14px;
-      padding:12px 14px;
-      border-radius:14px;
-      font-size:14px;
-      font-weight:600;
-      line-height:1.45;
-    }
-
-    .msg.show{
-      display:block;
-    }
-
-    .msg.err{
-      background:var(--err-bg);
-      color:var(--err);
-      border:1px solid rgba(185,28,28,.12);
-    }
-
-    .msg.ok{
-      background:var(--ok-bg);
-      color:var(--ok);
-      border:1px solid rgba(22,101,52,.12);
-    }
+    a:hover{ text-decoration:underline; }
   </style>
 </head>
 <body>
@@ -180,19 +147,8 @@
       msg.textContent = texto;
     }
 
-    function limparMensagem() {
-      msg.className = 'msg';
-      msg.textContent = '';
-    }
-
     async function verificarSessaoExistente() {
-      const { data, error } = await client.auth.getSession();
-
-      if (error) {
-        console.error(error);
-        return;
-      }
-
+      const { data } = await client.auth.getSession();
       if (data.session) {
         window.location.href = '/admin.php';
       }
@@ -200,48 +156,29 @@
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      limparMensagem();
-
-      const email = emailEl.value.trim();
-      const senha = senhaEl.value;
-
-      if (!email || !senha) {
-        mostrarMensagem('Preencha email e senha.');
-        return;
-      }
 
       btnEntrar.disabled = true;
       btnEntrar.textContent = 'Entrando...';
+      msg.className = 'msg';
+      msg.textContent = '';
 
-      try {
-        const { data, error } = await client.auth.signInWithPassword({
-          email: email,
-          password: senha
-        });
+      const { data, error } = await client.auth.signInWithPassword({
+        email: emailEl.value.trim(),
+        password: senhaEl.value
+      });
 
-        if (error) {
-          mostrarMensagem(error.message || 'Erro ao fazer login.');
-          return;
-        }
-
-        if (!data.session) {
-          mostrarMensagem('Sessão não criada. Tente novamente.');
-          return;
-        }
-
-        mostrarMensagem('Login realizado com sucesso.', 'ok');
-
-        setTimeout(() => {
-          window.location.href = '/admin.php';
-        }, 600);
-
-      } catch (err) {
-        console.error(err);
-        mostrarMensagem('Erro inesperado ao fazer login.');
-      } finally {
+      if (error || !data.session) {
+        mostrarMensagem(error?.message || 'Erro ao fazer login.');
         btnEntrar.disabled = false;
         btnEntrar.textContent = 'Entrar';
+        return;
       }
+
+      mostrarMensagem('Login realizado com sucesso.', 'ok');
+
+      setTimeout(() => {
+        window.location.href = '/admin.php';
+      }, 500);
     });
 
     verificarSessaoExistente();

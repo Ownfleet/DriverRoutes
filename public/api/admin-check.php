@@ -16,13 +16,13 @@ if (!isset($input['access_token'])) {
 
 $token = $input['access_token'];
 
-/* pega o usuário autenticado no Supabase */
-$ch = curl_init($SUPABASE_URL . "/auth/v1/user");
+/* pega usuário autenticado */
+$ch = curl_init(SUPABASE_URL . "/auth/v1/user");
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_HTTPHEADER => [
         "Authorization: Bearer " . $token,
-        "apikey: " . $SUPABASE_ANON_KEY
+        "apikey: " . SUPABASE_ANON_KEY
     ]
 ]);
 
@@ -32,7 +32,7 @@ curl_close($ch);
 
 $user = json_decode($response, true);
 
-if ($httpCode !== 200 || !$user || !isset($user["email"])) {
+if ($httpCode !== 200 || !$user || !isset($user['email'])) {
     echo json_encode([
         "ok" => false,
         "message" => "Usuário inválido"
@@ -40,17 +40,17 @@ if ($httpCode !== 200 || !$user || !isset($user["email"])) {
     exit;
 }
 
-$email = $user["email"];
+$email = $user['email'];
 
-/* consulta tabela admins no Supabase */
-$url = $SUPABASE_URL . "/rest/v1/admins?select=*&email=eq." . urlencode($email) . "&ativo=eq.true&limit=1";
+/* verifica tabela admins */
+$url = SUPABASE_URL . "/rest/v1/admins?select=*&email=eq." . urlencode($email) . "&ativo=eq.true&limit=1";
 
 $ch2 = curl_init($url);
 curl_setopt_array($ch2, [
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_HTTPHEADER => [
-        "apikey: " . $SUPABASE_SERVICE_ROLE_KEY,
-        "Authorization: Bearer " . $SUPABASE_SERVICE_ROLE_KEY,
+        "apikey: " . SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization: Bearer " . SUPABASE_SERVICE_ROLE_KEY,
         "Content-Type: application/json"
     ]
 ]);

@@ -130,8 +130,6 @@ button:hover{
   box-shadow:0 14px 24px rgba(238,77,45,.22);
 }
 
-button:active{ transform:translateY(0); }
-
 button.secondary{
   background:linear-gradient(135deg, #64748b, #475569);
   box-shadow:0 10px 18px rgba(71,85,105,.15);
@@ -152,13 +150,6 @@ input, select{
   color:var(--text);
   background:#fff;
   outline:none;
-  transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease;
-  box-shadow: inset 0 1px 2px rgba(15,23,42,.03);
-}
-
-input:focus, select:focus{
-  border-color:rgba(238,77,45,.55);
-  box-shadow:0 0 0 4px rgba(238,77,45,.12);
 }
 
 .section{
@@ -244,9 +235,6 @@ th{
   top:0;
   z-index:1;
 }
-
-tbody tr{ transition:background .16s ease; }
-tbody tr:hover{ background:#fcfcfd; }
 
 .badge{
   display:inline-flex;
@@ -340,14 +328,7 @@ tbody tr:hover{ background:#fcfcfd; }
 <body>
 
 <div class="container hidden" id="appContainer">
-
   <h1>Painel Admin</h1>
-
-  <?php if (!empty($_GET['msg'])): ?>
-    <div class="msg">
-      <?= htmlspecialchars($_GET['msg']) ?>
-    </div>
-  <?php endif; ?>
 
   <p>Logado como: <b id="adminEmail">Carregando...</b></p>
 
@@ -359,18 +340,15 @@ tbody tr:hover{ background:#fcfcfd; }
 
   <div class="section">
     <h2>Importar rotas</h2>
-
     <form action="api/import-routes.php" method="POST" enctype="multipart/form-data" class="row">
-      <input type="file" name="file" accept=".csv" required>
+      <input type="file" name="file" accept=".csv">
       <button type="submit">Importar</button>
     </form>
-
     <p class="small">O CSV deve ter as colunas: <b>driver_id, cluster, turno</b></p>
   </div>
 
   <div class="section">
     <h2>Resetar vínculo de motorista</h2>
-
     <form action="api/reset-driver-link.php" method="POST" class="row">
       <input type="text" name="driver_id" placeholder="Driver ID" required>
       <button type="submit">Resetar</button>
@@ -379,7 +357,6 @@ tbody tr:hover{ background:#fcfcfd; }
 
   <div class="section">
     <h2>Criar rota manual</h2>
-
     <form action="api/import-routes.php" method="POST" class="form-stack">
       <input type="text" name="driver_id" placeholder="Driver ID" required>
       <input type="text" name="cluster" placeholder="Cluster" required>
@@ -390,11 +367,9 @@ tbody tr:hover{ background:#fcfcfd; }
 
   <div class="section">
     <h2>Limpar base de rotas</h2>
-
     <form action="api/clear-routes.php" method="POST" onsubmit="return confirm('Tem certeza que deseja apagar TODAS as rotas da base?');">
       <button type="submit" class="danger">Limpar todas as rotas</button>
     </form>
-
     <p class="small">Esse botão apaga todas as rotas da tabela <b>route_offers</b>.</p>
   </div>
 
@@ -402,26 +377,11 @@ tbody tr:hover{ background:#fcfcfd; }
     <h2>Painel de rotas enviadas</h2>
 
     <div class="stats">
-      <div class="stat-card">
-        Total
-        <strong id="statTotal">0</strong>
-      </div>
-      <div class="stat-card">
-        Pendentes
-        <strong id="statPendentes">0</strong>
-      </div>
-      <div class="stat-card">
-        Aceitas
-        <strong id="statAceitas">0</strong>
-      </div>
-      <div class="stat-card">
-        Recusadas
-        <strong id="statRecusadas">0</strong>
-      </div>
-      <div class="stat-card">
-        Canceladas
-        <strong id="statCanceladas">0</strong>
-      </div>
+      <div class="stat-card">Total <strong id="statTotal">0</strong></div>
+      <div class="stat-card">Pendentes <strong id="statPendentes">0</strong></div>
+      <div class="stat-card">Aceitas <strong id="statAceitas">0</strong></div>
+      <div class="stat-card">Recusadas <strong id="statRecusadas">0</strong></div>
+      <div class="stat-card">Canceladas <strong id="statCanceladas">0</strong></div>
     </div>
 
     <div class="filters">
@@ -455,14 +415,11 @@ tbody tr:hover{ background:#fcfcfd; }
           </tr>
         </thead>
         <tbody id="tabelaRotas">
-          <tr>
-            <td colspan="8" class="empty">Carregando...</td>
-          </tr>
+          <tr><td colspan="8" class="empty">Carregando...</td></tr>
         </tbody>
       </table>
     </div>
   </div>
-
 </div>
 
 <div class="container" id="loadingContainer">
@@ -595,13 +552,8 @@ async function carregarRotas() {
   let url = "api/list-routes.php?";
   const params = [];
 
-  if (status) {
-    params.push("status=" + encodeURIComponent(status));
-  }
-
-  if (driver) {
-    params.push("driver_id=" + encodeURIComponent(driver));
-  }
+  if (status) params.push("status=" + encodeURIComponent(status));
+  if (driver) params.push("driver_id=" + encodeURIComponent(driver));
 
   url += params.join("&");
 
@@ -666,4 +618,4 @@ validarAdmin();
 </script>
 
 </body>
-</html>
+</html> me mande completo e me diga tudo que preciso fazer no supa e oq preciso criar tbm e oq apagar do antigo)
