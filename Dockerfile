@@ -6,4 +6,4 @@ COPY . .
 
 EXPOSE 8080
 
-CMD php -S 0.0.0.0:$PORT -t public
+CMD php -S 0.0.0.0:$PORT -t public  

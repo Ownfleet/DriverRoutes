@@ -1,17 +1,10 @@
-<?php
-session_start();
-
-if (!isset($_SESSION['admin_email'])) {
-    header("Location: admin-login.php");
-    exit;
-}
-?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Painel Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
@@ -58,13 +51,8 @@ if (!isset($_SESSION['admin_email'])) {
   --shadow-sm: 0 6px 16px rgba(15,23,42,.05);
 }
 
-*{
-  box-sizing:border-box;
-}
-
-html{
-  scroll-behavior:smooth;
-}
+*{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
 
 body{
   margin:0;
@@ -113,9 +101,7 @@ p{
   margin:0 0 10px;
 }
 
-b,strong{
-  color:var(--text);
-}
+b,strong{ color:var(--text); }
 
 a{
   color:var(--brand-dark);
@@ -123,9 +109,7 @@ a{
   font-weight:700;
 }
 
-a:hover{
-  text-decoration:underline;
-}
+a:hover{ text-decoration:underline; }
 
 button{
   appearance:none;
@@ -146,9 +130,7 @@ button:hover{
   box-shadow:0 14px 24px rgba(238,77,45,.22);
 }
 
-button:active{
-  transform:translateY(0);
-}
+button:active{ transform:translateY(0); }
 
 button.secondary{
   background:linear-gradient(135deg, #64748b, #475569);
@@ -160,8 +142,7 @@ button.danger{
   box-shadow:0 10px 18px rgba(220,38,38,.16);
 }
 
-input,
-select{
+input, select{
   width:320px;
   max-width:100%;
   padding:13px 14px;
@@ -175,8 +156,7 @@ select{
   box-shadow: inset 0 1px 2px rgba(15,23,42,.03);
 }
 
-input:focus,
-select:focus{
+input:focus, select:focus{
   border-color:rgba(238,77,45,.55);
   box-shadow:0 0 0 4px rgba(238,77,45,.12);
 }
@@ -265,13 +245,8 @@ th{
   z-index:1;
 }
 
-tbody tr{
-  transition:background .16s ease;
-}
-
-tbody tr:hover{
-  background:#fcfcfd;
-}
+tbody tr{ transition:background .16s ease; }
+tbody tr:hover{ background:#fcfcfd; }
 
 .badge{
   display:inline-flex;
@@ -285,30 +260,11 @@ tbody tr:hover{
   letter-spacing:.2px;
 }
 
-.pendente{
-  background:var(--warning-bg);
-  color:var(--warning-text);
-}
-
-.aceita{
-  background:var(--success-bg);
-  color:var(--success-text);
-}
-
-.recusada{
-  background:var(--error-bg);
-  color:var(--error-text);
-}
-
-.cancelada{
-  background:var(--cancel-bg);
-  color:var(--cancel-text);
-}
-
-.expirada{
-  background:var(--expired-bg);
-  color:var(--expired-text);
-}
+.pendente{ background:var(--warning-bg); color:var(--warning-text); }
+.aceita{ background:var(--success-bg); color:var(--success-text); }
+.recusada{ background:var(--error-bg); color:var(--error-text); }
+.cancelada{ background:var(--cancel-bg); color:var(--cancel-text); }
+.expirada{ background:var(--expired-bg); color:var(--expired-text); }
 
 .empty{
   padding:24px;
@@ -316,9 +272,7 @@ tbody tr:hover{
   text-align:center;
 }
 
-.actions form{
-  margin:0;
-}
+.actions form{ margin:0; }
 
 .stats{
   display:grid;
@@ -361,70 +315,31 @@ tbody tr:hover{
   margin-top:16px;
 }
 
+.hidden{ display:none !important; }
+
 @media (max-width: 820px){
-  body{
-    padding:18px;
-  }
-
-  .container{
-    padding:20px;
-    border-radius:20px;
-  }
-
-  h1{
-    font-size:36px;
-  }
-
-  h2{
-    font-size:24px;
-  }
-
-  .section{
-    padding:18px;
-  }
-
-  .stats{
-    grid-template-columns:repeat(2, 1fr);
-  }
+  body{ padding:18px; }
+  .container{ padding:20px; border-radius:20px; }
+  h1{ font-size:36px; }
+  h2{ font-size:24px; }
+  .section{ padding:18px; }
+  .stats{ grid-template-columns:repeat(2, 1fr); }
 }
 
 @media (max-width: 560px){
-  body{
-    padding:12px;
-  }
-
-  .container{
-    padding:16px;
-  }
-
-  h1{
-    font-size:32px;
-  }
-
-  .stats{
-    grid-template-columns:1fr;
-  }
-
-  input,
-  select,
-  button{
-    width:100%;
-  }
-
-  .row{
-    align-items:stretch;
-  }
-
-  .filters{
-    flex-direction:column;
-    align-items:stretch;
-  }
+  body{ padding:12px; }
+  .container{ padding:16px; }
+  h1{ font-size:32px; }
+  .stats{ grid-template-columns:1fr; }
+  input, select, button{ width:100%; }
+  .row{ align-items:stretch; }
+  .filters{ flex-direction:column; align-items:stretch; }
 }
 </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container hidden" id="appContainer">
 
   <h1>Painel Admin</h1>
 
@@ -434,10 +349,10 @@ tbody tr:hover{
     </div>
   <?php endif; ?>
 
-  <p>Logado como: <b><?= htmlspecialchars($_SESSION['admin_email']) ?></b></p>
+  <p>Logado como: <b id="adminEmail">Carregando...</b></p>
 
   <div class="top-actions">
-    <a href="admin-logout.php">Sair</a>
+    <a href="#" id="btnLogout">Sair</a>
   </div>
 
   <hr class="hr">
@@ -550,7 +465,91 @@ tbody tr:hover{
 
 </div>
 
+<div class="container" id="loadingContainer">
+  <h1>Painel Admin</h1>
+  <p>Validando acesso...</p>
+</div>
+
 <script>
+const supabaseUrl = 'https://gfdsylfpafwsgprmajrr.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmZHN5bGZwYWZ3c2dwcm1hanJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDQyODIsImV4cCI6MjA4ODQ4MDI4Mn0.He_tN7LD-IsyzeXdEvsF-1cO4DwV4hDNYaad6_Jwmvc';
+const client = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+let currentSession = null;
+let adminChannel = null;
+
+async function restoreSession() {
+  let { data, error } = await client.auth.getSession();
+  if (error) throw error;
+  if (data.session) return data.session;
+
+  const hash = window.location.hash || '';
+  if (hash.includes('access_token=')) {
+    const { data: urlData, error: urlError } = await client.auth.getSessionFromUrl({ storeSession: true });
+    if (urlError) throw urlError;
+    return urlData.session;
+  }
+
+  return null;
+}
+
+async function validarAdmin() {
+  try {
+    currentSession = await restoreSession();
+
+    if (!currentSession) {
+      window.location.href = 'admin-login.php';
+      return;
+    }
+
+    if (window.location.hash) {
+      history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    const res = await fetch('/api/admin-check.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        access_token: currentSession.access_token
+      })
+    });
+
+    const text = await res.text();
+    let json;
+
+    try {
+      json = JSON.parse(text);
+    } catch {
+      throw new Error('Resposta inválida do admin-check.php: ' + text);
+    }
+
+    if (!json.ok || !json.admin) {
+      alert(json.message || 'Acesso negado.');
+      await client.auth.signOut();
+      window.location.href = 'admin-login.php';
+      return;
+    }
+
+    document.getElementById('adminEmail').textContent = currentSession.user.email;
+    document.getElementById('loadingContainer').classList.add('hidden');
+    document.getElementById('appContainer').classList.remove('hidden');
+
+    iniciarRealtimeAdmin();
+    carregarRotas();
+
+  } catch (e) {
+    console.error(e);
+    alert('Erro ao validar admin: ' + e.message);
+    window.location.href = 'admin-login.php';
+  }
+}
+
+document.getElementById('btnLogout').addEventListener('click', async (e) => {
+  e.preventDefault();
+  await client.auth.signOut();
+  window.location.href = 'admin-login.php';
+});
+
 function atualizarResumo(routes) {
   const total = routes.length;
   const pendentes = routes.filter(r => r.status === "pendente").length;
@@ -563,6 +562,30 @@ function atualizarResumo(routes) {
   document.getElementById("statAceitas").textContent = aceitas;
   document.getElementById("statRecusadas").textContent = recusadas;
   document.getElementById("statCanceladas").textContent = canceladas;
+}
+
+function iniciarRealtimeAdmin() {
+  if (adminChannel) {
+    client.removeChannel(adminChannel);
+  }
+
+  adminChannel = client
+    .channel('admin-route-offers')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'route_offers'
+      },
+      (payload) => {
+        console.log('Realtime admin:', payload);
+        carregarRotas();
+      }
+    )
+    .subscribe((status) => {
+      console.log('Canal admin:', status);
+    });
 }
 
 async function carregarRotas() {
@@ -639,8 +662,8 @@ function limparFiltros() {
   carregarRotas();
 }
 
-carregarRotas();
+validarAdmin();
 </script>
 
 </body>
-</html>
+</html> me mande completo e me fale oq preciso fazer no supa pra poder logar no admin tbm com email e senha email autorizado a logar no admin
