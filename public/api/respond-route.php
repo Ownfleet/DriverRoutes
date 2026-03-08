@@ -1,101 +1,130 @@
 <?php
-header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/supabase.php';
 
-$data = json_decode(file_get_contents('php://input'), true);
+header('Content-Type: application/json');
 
-$jwt = $data['access_token'] ?? '';
-$routeId = (int)($data['route_id'] ?? 0);
-$status = trim($data['status'] ?? '');
+$input = json_decode(file_get_contents("php://input"), true);
 
-if (!$jwt) {
-    echo json_encode(['ok' => false, 'message' => 'Token ausente.']);
+if (
+    !isset($input['access_token']) ||
+    !isset($input['route_id']) ||
+    !isset($input['status'])
+) {
+    echo json_encode([
+        "ok" => false,
+        "message" => "Dados incompletos"
+    ]);
     exit;
 }
 
-if ($routeId <= 0) {
-    echo json_encode(['ok' => false, 'message' => 'Rota inválida.']);
+$token = $input['access_token'];
+$routeId = (int)$input['route_id'];
+$newStatus = $input['status'];
+
+if (!in_array($newStatus, ['aceita', 'recusada'], true)) {
+    echo json_encode([
+        "ok" => false,
+        "message" => "Status inválido"
+    ]);
     exit;
 }
 
-if (!in_array($status, ['aceita', 'recusada'])) {
-    echo json_encode(['ok' => false, 'message' => 'Status inválido.']);
+$ch = curl_init(SUPABASE_URL . "/auth/v1/user");
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        "Authorization: Bearer " . $token,
+        "apikey: " . SUPABASE_ANON_KEY
+    ]
+]);
+
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+
+$user = json_decode($response, true);
+
+if ($httpCode !== 200 || !$user || !isset($user['id'])) {
+    echo json_encode([
+        "ok" => false,
+        "message" => "Usuário inválido"
+    ]);
     exit;
 }
 
-// usuário autenticado
-$userRes = supabaseRequest('GET', '/auth/v1/user', null, false, $jwt);
+$userId = $user['id'];
 
-if (($userRes['status'] ?? 0) !== 200 || empty($userRes['body']['id'])) {
-    echo json_encode(['ok' => false, 'message' => 'Usuário não autenticado.']);
-    exit;
-}
-
-$userId = $userRes['body']['id'];
-
-// vínculo user -> driver_id
-$linkRes = supabaseRequest(
+$accountRes = supabaseRequest(
     'GET',
-    '/rest/v1/driver_accounts?user_id=eq.' . urlencode($userId) . '&select=*',
+    '/rest/v1/driver_accounts?user_id=eq.' . urlencode($userId) . '&select=driver_id&limit=1',
     null,
     true
 );
 
-if (($linkRes['status'] ?? 0) !== 200 || empty($linkRes['body'])) {
-    echo json_encode(['ok' => false, 'message' => 'Conta não vinculada a nenhum motorista.']);
+if (($accountRes['status'] ?? 0) !== 200 || empty($accountRes['body'])) {
+    echo json_encode([
+        "ok" => false,
+        "message" => "Conta não vinculada"
+    ]);
     exit;
 }
 
-$driverId = $linkRes['body'][0]['driver_id'] ?? '';
+$driverId = $accountRes['body'][0]['driver_id'];
 
-if (!$driverId) {
-    echo json_encode(['ok' => false, 'message' => 'Driver ID não encontrado para esta conta.']);
-    exit;
-}
-
-// busca rota
 $routeRes = supabaseRequest(
     'GET',
-    '/rest/v1/route_offers?id=eq.' . $routeId . '&select=*',
+    '/rest/v1/route_offers?id=eq.' . $routeId . '&select=*&limit=1',
     null,
     true
 );
 
 if (($routeRes['status'] ?? 0) !== 200 || empty($routeRes['body'])) {
-    echo json_encode(['ok' => false, 'message' => 'Rota não encontrada.']);
+    echo json_encode([
+        "ok" => false,
+        "message" => "Rota não encontrada"
+    ]);
     exit;
 }
 
 $route = $routeRes['body'][0];
 
-// garante que a rota pertence ao motorista
-if (($route['driver_id'] ?? '') !== $driverId) {
-    echo json_encode(['ok' => false, 'message' => 'Esta rota não pertence a você.']);
-    exit;
-}
-
-// só pode responder rota pendente
-$statusAtual = $route['status'] ?? '';
-if ($statusAtual !== 'pendente') {
+if ((string)$route['driver_id'] !== (string)$driverId) {
     echo json_encode([
-        'ok' => false,
-        'message' => 'Essa rota já foi finalizada. Status atual: ' . $statusAtual
+        "ok" => false,
+        "message" => "Essa rota não pertence a este motorista"
     ]);
     exit;
 }
 
-// atualiza
-$updateRes = supabaseRequest(
-    'PATCH',
-    '/rest/v1/route_offers?id=eq.' . $routeId,
-    ['status' => $status],
-    true
-);
-
-if (($updateRes['status'] ?? 0) >= 200 && ($updateRes['status'] ?? 0) < 300) {
-    echo json_encode(['ok' => true, 'message' => 'Resposta enviada com sucesso.']);
+if (($route['status'] ?? '') !== 'pendente') {
+    echo json_encode([
+        "ok" => false,
+        "message" => "Essa rota já foi finalizada"
+    ]);
     exit;
 }
 
-echo json_encode(['ok' => false, 'message' => 'Erro ao responder rota.']);
+$update = supabaseRequest(
+    'PATCH',
+    '/rest/v1/route_offers?id=eq.' . $routeId,
+    [
+        'status' => $newStatus
+    ],
+    true
+);
+
+$statusCode = $update['status'] ?? 0;
+
+if ($statusCode >= 200 && $statusCode < 300) {
+    echo json_encode([
+        "ok" => true,
+        "message" => "Rota atualizada com sucesso"
+    ]);
+    exit;
+}
+
+echo json_encode([
+    "ok" => false,
+    "message" => "Erro ao atualizar rota"
+]);

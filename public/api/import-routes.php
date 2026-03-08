@@ -5,12 +5,14 @@ require_once __DIR__ . '/supabase.php';
 
 requireAdmin(true);
 
-function voltar(string $msg): void {
+function voltar(string $msg): void
+{
     header('Location: /admin.php?msg=' . urlencode($msg));
     exit;
 }
 
-function rotaJaExiste(string $driverId, string $cluster, string $turno, string $dataHoje): bool {
+function rotaJaExiste(string $driverId, string $cluster, string $turno, string $dataHoje): bool
+{
     $exists = supabaseRequest(
         'GET',
         '/rest/v1/route_offers?driver_id=eq.' . urlencode($driverId)
@@ -27,9 +29,6 @@ function rotaJaExiste(string $driverId, string $cluster, string $turno, string $
 
 $dataHoje = date('Y-m-d');
 
-/* =========================
-   ROTA MANUAL
-   ========================= */
 if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
     $driverId = trim($_POST['driver_id'] ?? '');
     $cluster  = trim($_POST['cluster'] ?? '');
@@ -76,9 +75,6 @@ if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
     voltar('Erro ao criar rota manual.');
 }
 
-/* =========================
-   IMPORTAÇÃO CSV
-   ========================= */
 $tmpPath = $_FILES['file']['tmp_name'] ?? '';
 $originalName = $_FILES['file']['name'] ?? '';
 

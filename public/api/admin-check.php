@@ -16,7 +16,6 @@ if (!isset($input['access_token'])) {
 
 $token = $input['access_token'];
 
-/* pega usuário autenticado */
 $ch = curl_init(SUPABASE_URL . "/auth/v1/user");
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
@@ -32,7 +31,7 @@ curl_close($ch);
 
 $user = json_decode($response, true);
 
-if ($httpCode !== 200 || !$user || !isset($user['email'])) {
+if ($httpCode !== 200 || !$user || !isset($user["email"])) {
     echo json_encode([
         "ok" => false,
         "message" => "Usuário inválido"
@@ -40,9 +39,8 @@ if ($httpCode !== 200 || !$user || !isset($user['email'])) {
     exit;
 }
 
-$email = $user['email'];
+$email = $user["email"];
 
-/* verifica tabela admins */
 $url = SUPABASE_URL . "/rest/v1/admins?select=*&email=eq." . urlencode($email) . "&ativo=eq.true&limit=1";
 
 $ch2 = curl_init($url);

@@ -1,36 +1,71 @@
 <?php
-require_once 'supabase.php';
 
-$data = json_decode(file_get_contents('php://input'), true);
-$jwt = $data['access_token'] ?? '';
+require_once __DIR__ . '/supabase.php';
 
-$userRes = supabaseRequest('GET', '/auth/v1/user', null, false, $jwt);
-if ($userRes['status'] !== 200) {
-    echo json_encode(['routes' => []]);
+header('Content-Type: application/json');
+
+$input = json_decode(file_get_contents("php://input"), true);
+
+if (!isset($input['access_token'])) {
+    echo json_encode([
+        "ok" => false,
+        "message" => "Token não enviado"
+    ]);
     exit;
 }
 
-$userId = $userRes['body']['id'];
+$token = $input['access_token'];
 
-$linkRes = supabaseRequest(
+$ch = curl_init(SUPABASE_URL . "/auth/v1/user");
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        "Authorization: Bearer " . $token,
+        "apikey: " . SUPABASE_ANON_KEY
+    ]
+]);
+
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+
+$user = json_decode($response, true);
+
+if ($httpCode !== 200 || !$user || !isset($user['id'])) {
+    echo json_encode([
+        "ok" => false,
+        "message" => "Usuário inválido"
+    ]);
+    exit;
+}
+
+$userId = $user['id'];
+
+$accountRes = supabaseRequest(
     'GET',
-    '/rest/v1/driver_accounts?user_id=eq.' . $userId . '&select=*',
+    '/rest/v1/driver_accounts?user_id=eq.' . urlencode($userId) . '&select=driver_id&limit=1',
     null,
     true
 );
 
-if ($linkRes['status'] !== 200 || count($linkRes['body']) === 0) {
-    echo json_encode(['routes' => []]);
+if (($accountRes['status'] ?? 0) !== 200 || empty($accountRes['body'])) {
+    echo json_encode([
+        "ok" => true,
+        "routes" => []
+    ]);
     exit;
 }
 
-$driverId = $linkRes['body'][0]['driver_id'];
+$driverId = $accountRes['body'][0]['driver_id'];
 
-$routeRes = supabaseRequest(
+$routesRes = supabaseRequest(
     'GET',
     '/rest/v1/route_offers?driver_id=eq.' . urlencode($driverId) . '&select=*&order=created_at.desc',
     null,
     true
 );
 
-echo json_encode(['routes' => $routeRes['body'] ?? []]);
+echo json_encode([
+    "ok" => true,
+    "routes" => $routesRes['body'] ?? []
+]);

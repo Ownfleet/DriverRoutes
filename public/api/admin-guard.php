@@ -2,23 +2,18 @@
 
 require_once __DIR__ . '/config.php';
 
-function redirectAdminLogin(): void {
+function redirectAdminLogin(): void
+{
     header('Location: /admin-login.php');
     exit;
 }
 
-function jsonResponse(array $data, int $status = 200): void {
-    http_response_code($status);
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode($data);
-    exit;
-}
-
-function getBearerToken(): ?string {
+function getBearerToken(): ?string
+{
     $headers = function_exists('getallheaders') ? getallheaders() : [];
 
-    if (!empty($headers['Authorization']) && preg_match('/Bearer\s(\S+)/', $headers['Authorization'], $m)) {
-        return $m[1];
+    if (!empty($headers['Authorization']) && preg_match('/Bearer\s(\S+)/', $headers['Authorization'], $matches)) {
+        return $matches[1];
     }
 
     if (!empty($_POST['access_token'])) {
@@ -33,12 +28,18 @@ function getBearerToken(): ?string {
     return null;
 }
 
-function requireAdmin(bool $redirectOnFail = true): array {
+function requireAdmin(bool $redirectOnFail = true): array
+{
     $token = getBearerToken();
 
     if (!$token) {
-        if ($redirectOnFail) redirectAdminLogin();
-        jsonResponse(['ok' => false, 'message' => 'Token não enviado'], 401);
+        if ($redirectOnFail) {
+            redirectAdminLogin();
+        }
+
+        http_response_code(401);
+        echo json_encode(['ok' => false, 'message' => 'Token não enviado']);
+        exit;
     }
 
     $ch = curl_init(SUPABASE_URL . '/auth/v1/user');
@@ -57,8 +58,13 @@ function requireAdmin(bool $redirectOnFail = true): array {
     $user = json_decode($response, true);
 
     if ($httpCode !== 200 || !$user || empty($user['email'])) {
-        if ($redirectOnFail) redirectAdminLogin();
-        jsonResponse(['ok' => false, 'message' => 'Usuário inválido'], 401);
+        if ($redirectOnFail) {
+            redirectAdminLogin();
+        }
+
+        http_response_code(401);
+        echo json_encode(['ok' => false, 'message' => 'Usuário inválido']);
+        exit;
     }
 
     $url = SUPABASE_URL . '/rest/v1/admins?select=*&email=eq.' . urlencode($user['email']) . '&ativo=eq.true&limit=1';
@@ -80,8 +86,13 @@ function requireAdmin(bool $redirectOnFail = true): array {
     $admins = json_decode($response2, true);
 
     if ($httpCode2 !== 200 || !is_array($admins) || count($admins) === 0) {
-        if ($redirectOnFail) redirectAdminLogin();
-        jsonResponse(['ok' => false, 'message' => 'Usuário não é admin'], 403);
+        if ($redirectOnFail) {
+            redirectAdminLogin();
+        }
+
+        http_response_code(403);
+        echo json_encode(['ok' => false, 'message' => 'Usuário não é admin']);
+        exit;
     }
 
     return $admins[0];

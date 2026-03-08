@@ -2,9 +2,9 @@
 
 require_once __DIR__ . '/config.php';
 
-function supabaseRequest($method, $endpoint, $data = null, $useServiceRole = false) {
+function supabaseRequest(string $method, string $endpoint, $data = null, bool $useServiceRole = false): array
+{
     $url = rtrim(SUPABASE_URL, '/') . $endpoint;
-
     $apiKey = $useServiceRole ? SUPABASE_SERVICE_ROLE_KEY : SUPABASE_ANON_KEY;
 
     $headers = [

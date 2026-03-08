@@ -1,140 +1,121 @@
 <?php
-header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/supabase.php';
 
-$data = json_decode(file_get_contents('php://input'), true);
+header('Content-Type: application/json');
 
-$jwt = $data['access_token'] ?? '';
-$driverId = trim($data['driver_id'] ?? '');
-$mode = $data['mode'] ?? 'preview';
+$input = json_decode(file_get_contents("php://input"), true);
 
-if (!$jwt) {
+if (
+    !isset($input['access_token']) ||
+    !isset($input['driver_id']) ||
+    !isset($input['mode'])
+) {
     echo json_encode([
-        'ok' => false,
-        'message' => 'Token ausente'
+        "ok" => false,
+        "message" => "Dados incompletos"
     ]);
     exit;
 }
 
-if (!$driverId) {
+$token = $input['access_token'];
+$driverId = trim($input['driver_id']);
+$mode = $input['mode'];
+
+$ch = curl_init(SUPABASE_URL . "/auth/v1/user");
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        "Authorization: Bearer " . $token,
+        "apikey: " . SUPABASE_ANON_KEY
+    ]
+]);
+
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+
+$user = json_decode($response, true);
+
+if ($httpCode !== 200 || !$user || !isset($user['id'])) {
     echo json_encode([
-        'ok' => false,
-        'message' => 'ID ausente'
+        "ok" => false,
+        "message" => "Usuário inválido"
     ]);
     exit;
 }
 
-/**
- * 1) Validar usuário logado pelo token
- */
-$userRes = supabaseRequest('GET', '/auth/v1/user', null, false, $jwt);
+$userId = $user['id'];
 
-if (($userRes['status'] ?? 0) !== 200 || empty($userRes['body']['id'])) {
-    echo json_encode([
-        'ok' => false,
-        'message' => 'Usuário não autenticado',
-        'debug_auth_status' => $userRes['status'] ?? null,
-        'debug_auth_body' => $userRes['body'] ?? null
-    ]);
-    exit;
-}
-
-$userId = $userRes['body']['id'];
-
-/**
- * 2) Verificar se a conta Google já está vinculada
- */
-$alreadyLinked = supabaseRequest(
-    'GET',
-    '/rest/v1/driver_accounts?user_id=eq.' . urlencode($userId) . '&select=*',
-    null,
-    true
-);
-
-if (($alreadyLinked['status'] ?? 0) === 200 && !empty($alreadyLinked['body'])) {
-    echo json_encode([
-        'ok' => false,
-        'message' => 'Sua conta já está vinculada a um ID.'
-    ]);
-    exit;
-}
-
-/**
- * 3) Procurar o motorista pelo driver_id
- */
 $driverRes = supabaseRequest(
     'GET',
-    '/rest/v1/drivers?driver_id=eq.' . urlencode($driverId) . '&select=*',
+    '/rest/v1/drivers?driver_id=eq.' . urlencode($driverId) . '&select=*&limit=1',
     null,
     true
 );
 
 if (($driverRes['status'] ?? 0) !== 200 || empty($driverRes['body'])) {
     echo json_encode([
-        'ok' => false,
-        'message' => 'ID não encontrado.',
-        'debug_driver_status' => $driverRes['status'] ?? null,
-        'debug_driver_body' => $driverRes['body'] ?? null
+        "ok" => false,
+        "message" => "Driver ID não encontrado"
     ]);
     exit;
 }
 
 $driver = $driverRes['body'][0];
 
-/**
- * 4) Verificar se esse ID já está vinculado a outra conta
- */
-$driverUsed = supabaseRequest(
-    'GET',
-    '/rest/v1/driver_accounts?driver_id=eq.' . urlencode($driverId) . '&select=*',
-    null,
-    true
-);
-
-if (($driverUsed['status'] ?? 0) === 200 && !empty($driverUsed['body'])) {
-    echo json_encode([
-        'ok' => false,
-        'message' => 'Este ID já está vinculado a outra conta.'
-    ]);
-    exit;
-}
-
-/**
- * 5) Se for só visualização, retorna os dados
- */
 if ($mode === 'preview') {
     echo json_encode([
-        'ok' => true,
-        'driver' => $driver
+        "ok" => true,
+        "driver" => $driver
     ]);
     exit;
 }
 
-/**
- * 6) Confirmar vínculo
- */
-$insertRes = supabaseRequest(
-    'POST',
-    '/rest/v1/driver_accounts',
-    [[
-        'user_id' => $userId,
-        'driver_id' => $driverId,
-        'bloqueado' => true
-    ]],
-    true
-);
+if ($mode === 'confirm') {
+    $existing = supabaseRequest(
+        'GET',
+        '/rest/v1/driver_accounts?user_id=eq.' . urlencode($userId) . '&select=id&limit=1',
+        null,
+        true
+    );
 
-if (($insertRes['status'] ?? 0) >= 200 && ($insertRes['status'] ?? 0) < 300) {
+    if (($existing['status'] ?? 0) === 200 && !empty($existing['body'])) {
+        $id = $existing['body'][0]['id'];
+
+        $update = supabaseRequest(
+            'PATCH',
+            '/rest/v1/driver_accounts?id=eq.' . urlencode($id),
+            [
+                'user_id' => $userId,
+                'driver_id' => $driverId
+            ],
+            true
+        );
+
+        echo json_encode([
+            "ok" => (($update['status'] ?? 0) >= 200 && ($update['status'] ?? 0) < 300)
+        ]);
+        exit;
+    }
+
+    $insert = supabaseRequest(
+        'POST',
+        '/rest/v1/driver_accounts',
+        [[
+            'user_id' => $userId,
+            'driver_id' => $driverId
+        ]],
+        true
+    );
+
     echo json_encode([
-        'ok' => true,
-        'message' => 'Conta vinculada com sucesso.'
+        "ok" => (($insert['status'] ?? 0) >= 200 && ($insert['status'] ?? 0) < 300)
     ]);
-} else {
-    echo json_encode([
-        'ok' => false,
-        'message' => 'Erro ao vincular conta.',
-        'debug_insert_status' => $insertRes['status'] ?? null,
-        'debug_insert_body' => $insertRes['body'] ?? null
-    ]);
+    exit;
 }
+
+echo json_encode([
+    "ok" => false,
+    "message" => "Modo inválido"
+]);

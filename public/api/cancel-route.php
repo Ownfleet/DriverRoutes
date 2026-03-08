@@ -25,9 +25,8 @@ if (($routeRes['status'] ?? 0) !== 200 || empty($routeRes['body'])) {
 }
 
 $route = $routeRes['body'][0];
-$statusAtual = $route['status'] ?? '';
 
-if ($statusAtual !== 'pendente') {
+if (($route['status'] ?? '') !== 'pendente') {
     header('Location: /admin.php?msg=' . urlencode('Só é possível cancelar rotas pendentes.'));
     exit;
 }
