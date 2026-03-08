@@ -666,4 +666,4 @@ validarAdmin();
 </script>
 
 </body>
-</html> me mande completo e me fale oq preciso fazer no supa pra poder logar no admin tbm com email e senha email autorizado a logar no admin
+</html>
