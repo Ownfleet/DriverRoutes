@@ -198,6 +198,18 @@ button.sec{
   display:inline-block;
 }
 
+.logout{
+  display:inline-block;
+  margin-top:6px;
+  color:#c2410c;
+  font-weight:700;
+  text-decoration:none;
+}
+
+.logout:hover{
+  text-decoration:underline;
+}
+
 @media (max-width: 720px){
   body{
     padding:14px;
@@ -229,6 +241,7 @@ button.sec{
     <div class="card">
       <h1>Meu Painel</h1>
       <div id="status">Carregando...</div>
+      <a href="#" class="logout" id="btnLogout">Sair</a>
     </div>
 
     <div class="card" id="bindBox" style="display:none;">
@@ -248,7 +261,7 @@ button.sec{
 
   <script>
     const supabaseUrl = 'https://gfdsylfpafwsgprmajrr.supabase.co';
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmZHN5bGZwYWZ3c2dwcm1hanJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDQyODIsImV4cCI6MjA4ODQ4MDI4Mn0.He_tN7LD-IsyzeXdEvsF-1cO4DwV4hDNYaad6_Jwmvc';
+    const supabaseAnonKey = 'SUA_ANON_KEY_AQUI';
     const client = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
     const statusEl = document.getElementById('status');
@@ -257,6 +270,7 @@ button.sec{
     const routesList = document.getElementById('routesList');
     const confirmArea = document.getElementById('confirmArea');
     const btnBuscar = document.getElementById('btnBuscar');
+    const btnLogout = document.getElementById('btnLogout');
 
     let currentSession = null;
     let currentDriverId = null;
@@ -280,257 +294,3 @@ button.sec{
     function getStatusBadge(status) {
       const classe = (status || '').toLowerCase();
       return `<span class="badge ${classe}">${status ?? '-'}</span>`;
-    }
-
-    function iniciarRealtimeMotorista() {
-      if (!currentDriverId) return;
-
-      if (driverChannel) {
-        client.removeChannel(driverChannel);
-      }
-
-      driverChannel = client
-        .channel('driver-route-offers-' + currentDriverId)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'route_offers'
-          },
-          (payload) => {
-            const novo = payload.new || {};
-            const antigo = payload.old || {};
-            const driverPayload = novo.driver_id || antigo.driver_id;
-
-            console.log('Realtime motorista:', payload);
-
-            if (String(driverPayload) === String(currentDriverId)) {
-              carregarRotas();
-            }
-          }
-        )
-        .subscribe((status) => {
-          console.log('Canal motorista:', status);
-        });
-    }
-
-    async function init() {
-      try {
-        currentSession = await restoreSession();
-
-        if (!currentSession) {
-          statusEl.innerHTML = '<p class="err">Sessão não encontrada. Volte e faça login novamente.</p>';
-          return;
-        }
-
-        if (window.location.hash) {
-          history.replaceState({}, document.title, window.location.pathname);
-        }
-
-        statusEl.innerHTML = `<p><strong>Email:</strong> ${currentSession.user.email}</p>`;
-
-        const res = await fetch('/api/get-driver.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ access_token: currentSession.access_token })
-        });
-
-        const text = await res.text();
-        let json;
-        try {
-          json = JSON.parse(text);
-        } catch {
-          throw new Error('Resposta inválida do get-driver.php: ' + text);
-        }
-
-        if (json.linked) {
-          currentDriverId = json.account.driver_id;
-          statusEl.innerHTML += `<p class="ok">Conta vinculada ao ID: <strong>${json.account.driver_id}</strong></p>`;
-          routesBox.style.display = 'block';
-          iniciarRealtimeMotorista();
-          await carregarRotas();
-        } else {
-          statusEl.innerHTML += `<p class="muted">Sua conta ainda não está vinculada a um ID.</p>`;
-          bindBox.style.display = 'block';
-        }
-      } catch (e) {
-        console.error(e);
-        statusEl.innerHTML = `<p class="err">Erro ao carregar dashboard: ${e.message}</p>`;
-      }
-    }
-
-    btnBuscar.addEventListener('click', async () => {
-      try {
-        const id = document.getElementById('driverId').value.trim();
-
-        if (!id) {
-          confirmArea.innerHTML = '<p class="err">Digite um ID.</p>';
-          return;
-        }
-
-        if (!currentSession || !currentSession.access_token) {
-          confirmArea.innerHTML = '<p class="err">Sessão não encontrada. Faça login novamente.</p>';
-          return;
-        }
-
-        const res = await fetch('/api/bind-driver.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            access_token: currentSession.access_token,
-            driver_id: id,
-            mode: 'preview'
-          })
-        });
-
-        const text = await res.text();
-        let json;
-        try {
-          json = JSON.parse(text);
-        } catch {
-          throw new Error('Resposta inválida do bind-driver.php: ' + text);
-        }
-
-        if (!json.ok) {
-          confirmArea.innerHTML = `<p class="err">${json.message}</p>`;
-          return;
-        }
-
-        confirmArea.innerHTML = `
-          <p>Este é seu nome? <strong>${json.driver.nome}</strong></p>
-          <p>Veículo: ${json.driver.tipo_veiculo ?? '-'}</p>
-          <p>Turno: ${json.driver.turno ?? '-'}</p>
-          <button id="btnConfirmar">Confirmar</button>
-          <button class="sec" id="btnCancelar">Cancelar</button>
-        `;
-
-        document.getElementById('btnCancelar').onclick = () => {
-          confirmArea.innerHTML = '';
-        };
-
-        document.getElementById('btnConfirmar').onclick = async () => {
-          const res2 = await fetch('/api/bind-driver.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              access_token: currentSession.access_token,
-              driver_id: id,
-              mode: 'confirm'
-            })
-          });
-
-          const text2 = await res2.text();
-          let json2;
-          try {
-            json2 = JSON.parse(text2);
-          } catch {
-            throw new Error('Resposta inválida ao confirmar vínculo: ' + text2);
-          }
-
-          if (!json2.ok) {
-            confirmArea.innerHTML = `<p class="err">${json2.message}</p>`;
-            return;
-          }
-
-          currentDriverId = id;
-          bindBox.style.display = 'none';
-          statusEl.innerHTML += `<p class="ok">Conta vinculada com sucesso.</p>`;
-          routesBox.style.display = 'block';
-          iniciarRealtimeMotorista();
-          await carregarRotas();
-        };
-      } catch (e) {
-        console.error(e);
-        confirmArea.innerHTML = `<p class="err">Erro: ${e.message}</p>`;
-      }
-    });
-
-    async function carregarRotas() {
-      try {
-        const res = await fetch('/api/get-routes.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ access_token: currentSession.access_token })
-        });
-
-        const text = await res.text();
-        let json;
-        try {
-          json = JSON.parse(text);
-        } catch {
-          throw new Error('Resposta inválida do get-routes.php: ' + text);
-        }
-
-        routesList.innerHTML = '';
-
-        if (!json.routes || json.routes.length === 0) {
-          routesList.innerHTML = '<p class="muted">Nenhuma rota disponível.</p>';
-          return;
-        }
-
-        json.routes.forEach(route => {
-          const div = document.createElement('div');
-          div.className = 'route';
-
-          let botoes = '';
-
-          if (route.status === 'pendente') {
-            botoes = `
-              <button onclick="responderRota(${route.id}, 'aceita')">Aceitar</button>
-              <button class="sec" onclick="responderRota(${route.id}, 'recusada')">Recusar</button>
-            `;
-          } else {
-            botoes = `<p class="finalizado">Rota finalizada.</p>`;
-          }
-
-          div.innerHTML = `
-            <p><strong>Cluster:</strong> ${route.cluster}</p>
-            <p><strong>Turno:</strong> ${route.turno}</p>
-            <p><strong>Data:</strong> ${route.offer_date}</p>
-            <p><strong>Status:</strong> ${getStatusBadge(route.status)}</p>
-            ${botoes}
-          `;
-
-          routesList.appendChild(div);
-        });
-
-      } catch (e) {
-        console.error(e);
-        routesList.innerHTML = `<p class="err">Erro ao carregar rotas: ${e.message}</p>`;
-      }
-    }
-
-    async function responderRota(routeId, status) {
-      if (!currentSession) {
-        alert('Sessão não encontrada.');
-        return;
-      }
-
-      const res = await fetch('/api/respond-route.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          access_token: currentSession.access_token,
-          route_id: routeId,
-          status: status
-        })
-      });
-
-      const text = await res.text();
-      let json;
-      try {
-        json = JSON.parse(text);
-      } catch {
-        alert('Resposta inválida: ' + text);
-        return;
-      }
-
-      alert(json.message || 'Atualizado');
-      await carregarRotas();
-    }
-
-    init();
-  </script>
-</body>
-</html>
