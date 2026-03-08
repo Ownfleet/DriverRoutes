@@ -259,6 +259,8 @@ button.sec{
     const btnBuscar = document.getElementById('btnBuscar');
 
     let currentSession = null;
+    let currentDriverId = null;
+    let driverChannel = null;
 
     async function restoreSession() {
       let { data, error } = await client.auth.getSession();
@@ -278,6 +280,39 @@ button.sec{
     function getStatusBadge(status) {
       const classe = (status || '').toLowerCase();
       return `<span class="badge ${classe}">${status ?? '-'}</span>`;
+    }
+
+    function iniciarRealtimeMotorista() {
+      if (!currentDriverId) return;
+
+      if (driverChannel) {
+        client.removeChannel(driverChannel);
+      }
+
+      driverChannel = client
+        .channel('driver-route-offers-' + currentDriverId)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'route_offers'
+          },
+          (payload) => {
+            const novo = payload.new || {};
+            const antigo = payload.old || {};
+            const driverPayload = novo.driver_id || antigo.driver_id;
+
+            console.log('Realtime motorista:', payload);
+
+            if (String(driverPayload) === String(currentDriverId)) {
+              carregarRotas();
+            }
+          }
+        )
+        .subscribe((status) => {
+          console.log('Canal motorista:', status);
+        });
     }
 
     async function init() {
@@ -310,8 +345,10 @@ button.sec{
         }
 
         if (json.linked) {
+          currentDriverId = json.account.driver_id;
           statusEl.innerHTML += `<p class="ok">Conta vinculada ao ID: <strong>${json.account.driver_id}</strong></p>`;
           routesBox.style.display = 'block';
+          iniciarRealtimeMotorista();
           await carregarRotas();
         } else {
           statusEl.innerHTML += `<p class="muted">Sua conta ainda não está vinculada a um ID.</p>`;
@@ -396,9 +433,11 @@ button.sec{
             return;
           }
 
+          currentDriverId = id;
           bindBox.style.display = 'none';
           statusEl.innerHTML += `<p class="ok">Conta vinculada com sucesso.</p>`;
           routesBox.style.display = 'block';
+          iniciarRealtimeMotorista();
           await carregarRotas();
         };
       } catch (e) {
