@@ -1,67 +1,75 @@
 <?php
 
-require_once __DIR__.'/config.php';
+require_once __DIR__ . '/config.php';
 
-header("Content-Type: application/json");
+header('Content-Type: application/json');
 
 $input = json_decode(file_get_contents("php://input"), true);
 
-if(!isset($input['access_token'])){
-echo json_encode([
-"ok"=>false,
-"message"=>"Token não enviado"
-]);
-exit;
+if (!isset($input['access_token'])) {
+    echo json_encode([
+        "ok" => false,
+        "message" => "Token não enviado"
+    ]);
+    exit;
 }
 
 $token = $input['access_token'];
 
-/* consultar usuario no supabase */
-
-$ch = curl_init($SUPABASE_URL."/auth/v1/user");
-
-curl_setopt_array($ch,[
-CURLOPT_RETURNTRANSFER => true,
-CURLOPT_HTTPHEADER => [
-"Authorization: Bearer ".$token,
-"apikey: ".$SUPABASE_ANON_KEY
-]
+/* pega o usuário autenticado no Supabase */
+$ch = curl_init($SUPABASE_URL . "/auth/v1/user");
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        "Authorization: Bearer " . $token,
+        "apikey: " . $SUPABASE_ANON_KEY
+    ]
 ]);
 
 $response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
 
-$user = json_decode($response,true);
+$user = json_decode($response, true);
 
-if(!$user || !isset($user["email"])){
-
-echo json_encode([
-"ok"=>false,
-"message"=>"Usuário inválido"
-]);
-exit;
-
+if ($httpCode !== 200 || !$user || !isset($user["email"])) {
+    echo json_encode([
+        "ok" => false,
+        "message" => "Usuário inválido"
+    ]);
+    exit;
 }
 
 $email = $user["email"];
 
-/* verificar se é admin */
+/* consulta tabela admins no Supabase */
+$url = $SUPABASE_URL . "/rest/v1/admins?select=*&email=eq." . urlencode($email) . "&ativo=eq.true&limit=1";
 
-$stmt = $pdo->prepare("SELECT * FROM admins WHERE email = ? LIMIT 1");
-$stmt->execute([$email]);
-
-$admin = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if(!$admin){
-
-echo json_encode([
-"ok"=>false,
-"message"=>"Usuário não é admin"
+$ch2 = curl_init($url);
+curl_setopt_array($ch2, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        "apikey: " . $SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization: Bearer " . $SUPABASE_SERVICE_ROLE_KEY,
+        "Content-Type: application/json"
+    ]
 ]);
-exit;
 
+$response2 = curl_exec($ch2);
+$httpCode2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
+curl_close($ch2);
+
+$admins = json_decode($response2, true);
+
+if ($httpCode2 !== 200 || !is_array($admins) || count($admins) === 0) {
+    echo json_encode([
+        "ok" => false,
+        "message" => "Usuário não é admin"
+    ]);
+    exit;
 }
 
 echo json_encode([
-"ok"=>true,
-"admin"=>$admin
+    "ok" => true,
+    "admin" => $admins[0]
 ]);
