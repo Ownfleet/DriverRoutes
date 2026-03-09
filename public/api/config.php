@@ -2,7 +2,7 @@
 
 define(
 'SUPABASE_URL',
-getenv('SUPABASE_URL') ?: 'https://zxoyiysdchjbzqeajxac.supabase.cohttps://zxoyiysdchjbzqeajxac.supabase.co'
+getenv('SUPABASE_URL') ?: 'const supabaseUrl = 'https://zxoyiysdchjbzqeajxac.supabase.co';'
 );
 
 define(
