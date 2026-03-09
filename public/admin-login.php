@@ -45,7 +45,7 @@ style="display:block;width:100%;padding:12px;margin-bottom:12px"
 
 <script>
 
-const supabaseUrl = 'https://zxoyiysdchjbzqeajxac.supabase.cohttps://zxoyiysdchjbzqeajxac.supabase.co'
+const supabaseUrl = 'https://zxoyiysdchjbzqeajxac.supabase.co'
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4b3lpeXNkY2hqYnpxZWFqeGFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODY5NTEsImV4cCI6MjA4ODY2Mjk1MX0.YoWBH0yCFwrqeL0tt_dFgsFWFieoyl2-o8HkPwQNtxM'
 
 const client = window.supabase.createClient(
