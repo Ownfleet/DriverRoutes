@@ -436,7 +436,7 @@ let currentSession = null;
 let adminChannel = null;
 
 async function restoreSession() {
-  let { data, error } = await client.auth.getSession();
+  const { data, error } = await client.auth.getSession();
   if (error) throw error;
   if (data.session) return data.session;
 
@@ -527,16 +527,16 @@ document.getElementById('btnLogout').addEventListener('click', async (e) => {
 
 function atualizarResumo(routes) {
   const total = routes.length;
-  const pendentes = routes.filter(r => r.status === "pendente").length;
-  const aceitas = routes.filter(r => r.status === "aceita").length;
-  const recusadas = routes.filter(r => r.status === "recusada").length;
-  const canceladas = routes.filter(r => r.status === "cancelada").length;
+  const pendentes = routes.filter(r => r.status === 'pendente').length;
+  const aceitas = routes.filter(r => r.status === 'aceita').length;
+  const recusadas = routes.filter(r => r.status === 'recusada').length;
+  const canceladas = routes.filter(r => r.status === 'cancelada').length;
 
-  document.getElementById("statTotal").textContent = total;
-  document.getElementById("statPendentes").textContent = pendentes;
-  document.getElementById("statAceitas").textContent = aceitas;
-  document.getElementById("statRecusadas").textContent = recusadas;
-  document.getElementById("statCanceladas").textContent = canceladas;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statPendentes').textContent = pendentes;
+  document.getElementById('statAceitas').textContent = aceitas;
+  document.getElementById('statRecusadas').textContent = recusadas;
+  document.getElementById('statCanceladas').textContent = canceladas;
 }
 
 function iniciarRealtimeAdmin() {
@@ -563,25 +563,25 @@ function iniciarRealtimeAdmin() {
 }
 
 async function carregarRotas() {
-  const status = document.getElementById("filtroStatus").value;
-  const driver = document.getElementById("filtroDriver").value.trim();
+  const status = document.getElementById('filtroStatus').value;
+  const driver = document.getElementById('filtroDriver').value.trim();
 
-  let url = "api/list-routes.php?";
+  let url = 'api/list-routes.php?';
   const params = [];
 
-  if (status) params.push("status=" + encodeURIComponent(status));
-  if (driver) params.push("driver_id=" + encodeURIComponent(driver));
+  if (status) params.push('status=' + encodeURIComponent(status));
+  if (driver) params.push('driver_id=' + encodeURIComponent(driver));
 
-  url += params.join("&");
+  url += params.join('&');
 
-  const tbody = document.getElementById("tabelaRotas");
+  const tbody = document.getElementById('tabelaRotas');
   tbody.innerHTML = "<tr><td colspan='8' class='empty'>Carregando...</td></tr>";
 
   try {
     const res = await fetch(url);
     const data = await res.json();
 
-    tbody.innerHTML = "";
+    tbody.innerHTML = '';
 
     if (!data.ok || !data.routes || data.routes.length === 0) {
       atualizarResumo([]);
@@ -592,9 +592,9 @@ async function carregarRotas() {
     atualizarResumo(data.routes);
 
     data.routes.forEach(route => {
-      let botao = "-";
+      let botao = '-';
 
-      if (route.status === "pendente") {
+      if (route.status === 'pendente') {
         botao = `
           <form method="POST" action="api/cancel-route.php" onsubmit="return confirm('Deseja cancelar esta rota?');">
             <input type="hidden" name="route_id" value="${route.id}">
@@ -603,17 +603,17 @@ async function carregarRotas() {
         `;
       }
 
-      const statusClass = (route.status || "").toLowerCase();
+      const statusClass = (route.status || '').toLowerCase();
 
       tbody.innerHTML += `
         <tr>
-          <td>${route.id ?? "-"}</td>
-          <td>${route.driver_id ?? "-"}</td>
-          <td>${route.cluster ?? "-"}</td>
-          <td>${route.turno ?? "-"}</td>
-          <td>${route.offer_date ?? "-"}</td>
-          <td><span class="badge ${statusClass}">${route.status ?? "-"}</span></td>
-          <td>${route.created_at ?? "-"}</td>
+          <td>${route.id ?? '-'}</td>
+          <td>${route.driver_id ?? '-'}</td>
+          <td>${route.cluster ?? '-'}</td>
+          <td>${route.turno ?? '-'}</td>
+          <td>${route.offer_date ?? '-'}</td>
+          <td><span class="badge ${statusClass}">${route.status ?? '-'}</span></td>
+          <td>${route.created_at ?? '-'}</td>
           <td class="actions">${botao}</td>
         </tr>
       `;
@@ -628,8 +628,8 @@ async function carregarRotas() {
 }
 
 function limparFiltros() {
-  document.getElementById("filtroStatus").value = "";
-  document.getElementById("filtroDriver").value = "";
+  document.getElementById('filtroStatus').value = '';
+  document.getElementById('filtroDriver').value = '';
   carregarRotas();
 }
 
@@ -637,54 +637,4 @@ validarAdmin();
 </script>
 
 </body>
-</html> <?php
-
-define('SUPABASE_URL', getenv('SUPABASE_URL') ?: 'https://gfdsylfpafwsgprmajrr.supabase.co');
-define('SUPABASE_ANON_KEY', getenv('SUPABASE_ANON_KEY') ?: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmZHN5bGZwYWZ3c2dwcm1hanJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDQyODIsImV4cCI6MjA4ODQ4MDI4Mn0.He_tN7LD-IsyzeXdEvsF-1cO4DwV4hDNYaad6_Jwmvc');
-define('SUPABASE_SERVICE_ROLE_KEY', getenv('SUPABASE_SERVICE_ROLE_KEY') ?: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmZHN5bGZwYWZ3c2dwcm1hanJyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjkwNDI4MiwiZXhwIjoyMDg4NDgwMjgyfQ.NmAzpWN8Tel0XQJZXTYR9P9E3OBJk3zw5mt-9JLvyUI'); <?php
-
-require_once __DIR__ . '/config.php';
-
-function supabaseRequest(string $method, string $endpoint, $data = null, bool $useServiceRole = false): array
-{
-    $url = rtrim(SUPABASE_URL, '/') . $endpoint;
-    $apiKey = $useServiceRole ? SUPABASE_SERVICE_ROLE_KEY : SUPABASE_ANON_KEY;
-
-    $headers = [
-        'apikey: ' . $apiKey,
-        'Authorization: Bearer ' . $apiKey,
-        'Content-Type: application/json',
-        'Prefer: return=representation'
-    ];
-
-    $ch = curl_init($url);
-
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-    if ($data !== null) {
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-    }
-
-    $response = curl_exec($ch);
-    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-    if ($response === false) {
-        $error = curl_error($ch);
-        curl_close($ch);
-
-        return [
-            'status' => 0,
-            'body' => null,
-            'error' => $error
-        ];
-    }
-
-    curl_close($ch);
-
-    return [
-        'status' => $status,
-        'body' => json_decode($response, true)
-    ];
-}
+</html>
