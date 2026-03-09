@@ -1,0 +1,16 @@
+<?php
+
+define(
+'SUPABASE_URL',
+getenv('SUPABASE_URL') ?: 'SUA_URL'
+);
+
+define(
+'SUPABASE_ANON_KEY',
+getenv('SUPABASE_ANON_KEY') ?: 'SUA_ANON_KEY'
+);
+
+define(
+'SUPABASE_SERVICE_ROLE_KEY',
+getenv('SUPABASE_SERVICE_ROLE_KEY') ?: 'SUA_SERVICE_ROLE'
+);
