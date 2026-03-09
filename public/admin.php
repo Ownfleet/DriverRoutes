@@ -450,6 +450,23 @@ async function restoreSession() {
   return null;
 }
 
+function preencherTokensDosForms() {
+  if (!currentSession?.access_token) return;
+
+  document.querySelectorAll('form').forEach(form => {
+    let hidden = form.querySelector('input[name="access_token"]');
+
+    if (!hidden) {
+      hidden = document.createElement('input');
+      hidden.type = 'hidden';
+      hidden.name = 'access_token';
+      form.appendChild(hidden);
+    }
+
+    hidden.value = currentSession.access_token;
+  });
+}
+
 async function validarAdmin() {
   try {
     currentSession = await restoreSession();
@@ -491,6 +508,7 @@ async function validarAdmin() {
     document.getElementById('loadingContainer').classList.add('hidden');
     document.getElementById('appContainer').classList.remove('hidden');
 
+    preencherTokensDosForms();
     iniciarRealtimeAdmin();
     carregarRotas();
 
@@ -535,8 +553,7 @@ function iniciarRealtimeAdmin() {
         schema: 'public',
         table: 'route_offers'
       },
-      (payload) => {
-        console.log('Realtime admin:', payload);
+      () => {
         carregarRotas();
       }
     )
@@ -602,6 +619,8 @@ async function carregarRotas() {
       `;
     });
 
+    preencherTokensDosForms();
+
   } catch (e) {
     atualizarResumo([]);
     tbody.innerHTML = "<tr><td colspan='8' class='empty'>Erro ao carregar rotas.</td></tr>";
@@ -618,4 +637,54 @@ validarAdmin();
 </script>
 
 </body>
-</html>
+</html> <?php
+
+define('SUPABASE_URL', getenv('SUPABASE_URL') ?: 'https://gfdsylfpafwsgprmajrr.supabase.co');
+define('SUPABASE_ANON_KEY', getenv('SUPABASE_ANON_KEY') ?: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmZHN5bGZwYWZ3c2dwcm1hanJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDQyODIsImV4cCI6MjA4ODQ4MDI4Mn0.He_tN7LD-IsyzeXdEvsF-1cO4DwV4hDNYaad6_Jwmvc');
+define('SUPABASE_SERVICE_ROLE_KEY', getenv('SUPABASE_SERVICE_ROLE_KEY') ?: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmZHN5bGZwYWZ3c2dwcm1hanJyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjkwNDI4MiwiZXhwIjoyMDg4NDgwMjgyfQ.NmAzpWN8Tel0XQJZXTYR9P9E3OBJk3zw5mt-9JLvyUI'); <?php
+
+require_once __DIR__ . '/config.php';
+
+function supabaseRequest(string $method, string $endpoint, $data = null, bool $useServiceRole = false): array
+{
+    $url = rtrim(SUPABASE_URL, '/') . $endpoint;
+    $apiKey = $useServiceRole ? SUPABASE_SERVICE_ROLE_KEY : SUPABASE_ANON_KEY;
+
+    $headers = [
+        'apikey: ' . $apiKey,
+        'Authorization: Bearer ' . $apiKey,
+        'Content-Type: application/json',
+        'Prefer: return=representation'
+    ];
+
+    $ch = curl_init($url);
+
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+    if ($data !== null) {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    }
+
+    $response = curl_exec($ch);
+    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+    if ($response === false) {
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        return [
+            'status' => 0,
+            'body' => null,
+            'error' => $error
+        ];
+    }
+
+    curl_close($ch);
+
+    return [
+        'status' => $status,
+        'body' => json_decode($response, true)
+    ];
+}

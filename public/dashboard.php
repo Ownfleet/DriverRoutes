@@ -261,7 +261,7 @@ button.sec{
 
   <script>
     const supabaseUrl = 'https://gfdsylfpafwsgprmajrr.supabase.co';
-    const supabaseAnonKey = 'SUA_ANON_KEY_AQUI';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmZHN5bGZwYWZ3c2dwcm1hanJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MDQyODIsImV4cCI6MjA4ODQ4MDI4Mn0.He_tN7LD-IsyzeXdEvsF-1cO4DwV4hDNYaad6_Jwmvc';
     const client = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
     const statusEl = document.getElementById('status');
