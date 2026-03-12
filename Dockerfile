@@ -1,9 +1,13 @@
-FROM php:8.2-cli
+FROM php:8.2-apache
 
-WORKDIR /app
+RUN apt-get update && apt-get install -y \
+    libcurl4-openssl-dev \
+    && docker-php-ext-install curl \
+    && a2enmod rewrite \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY . .
+COPY . /var/www/html/
 
-EXPOSE 8080
+RUN chown -R www-data:www-data /var/www/html
 
-CMD php -S 0.0.0.0:$PORT -t public
+EXPOSE 80
