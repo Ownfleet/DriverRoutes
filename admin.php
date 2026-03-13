@@ -10,37 +10,66 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
-    *{box-sizing:border-box}
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
 
     :root{
-      --bg:#f5f7fb;
-      --card:#ffffff;
-      --line:#eceef3;
-      --text:#1f2937;
-      --muted:#667085;
+      --bg:#f4f7fb;
+      --bg-soft:#fbfcfe;
+      --surface:#ffffff;
+      --surface-2:#f8fafc;
+      --line:#e5e7eb;
+      --line-strong:#d9dee8;
+
+      --text:#182230;
+      --text-soft:#5f6c7b;
+      --title:#101828;
+
       --brand:#ee4d2d;
-      --brand-dark:#d94223;
-      --dark:#3d3d3d;
-      --ok-bg:#dff7e7;
-      --ok-tx:#157347;
-      --warn-bg:#fff3cd;
-      --warn-tx:#8a6d3b;
-      --bad-bg:#fde2e2;
-      --bad-tx:#842029;
-      --cancel-bg:#e5e7eb;
-      --cancel-tx:#374151;
-      --shadow:0 12px 30px rgba(16,24,40,.08);
+      --brand-2:#ff6a3d;
+      --brand-dark:#d94122;
+      --brand-soft:rgba(238,77,45,.10);
+
+      --ok-bg:#dcfce7;
+      --ok-tx:#166534;
+
+      --warn-bg:#fef3c7;
+      --warn-tx:#92400e;
+
+      --bad-bg:#fee2e2;
+      --bad-tx:#991b1b;
+
+      --neutral-bg:#e5e7eb;
+      --neutral-tx:#374151;
+
+      --shadow-sm:0 8px 20px rgba(16,24,40,.06);
+      --shadow-md:0 14px 34px rgba(16,24,40,.10);
+      --shadow-lg:0 20px 50px rgba(16,24,40,.14);
+
+      --radius-sm:12px;
+      --radius-md:18px;
+      --radius-lg:24px;
+
+      --btn-h:46px;
+      --transition:.22s ease;
     }
 
     body{
-      margin:0;
-      font-family:Arial, Helvetica, sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(238,77,45,.10), transparent 24%),
-        linear-gradient(180deg,#f8fafc 0%, #f3f5f9 100%);
       min-height:100vh;
       padding:24px;
+      font-family:Inter, Arial, Helvetica, sans-serif;
       color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(238,77,45,.10), transparent 22%),
+        radial-gradient(circle at top right, rgba(255,106,61,.10), transparent 18%),
+        linear-gradient(180deg,#f8fafc 0%, #f2f5fa 100%);
+    }
+
+    .hidden{
+      display:none !important;
     }
 
     .auth-wrap{
@@ -50,56 +79,62 @@
       justify-content:center;
     }
 
-    .box{
+    .login-card{
       width:100%;
-      max-width:500px;
-      background:var(--card);
-      padding:32px;
-      border-radius:22px;
-      box-shadow:var(--shadow);
-      border:1px solid rgba(255,255,255,.7);
+      max-width:540px;
+      background:rgba(255,255,255,.88);
+      border:1px solid rgba(255,255,255,.9);
+      backdrop-filter:blur(8px);
+      box-shadow:var(--shadow-lg);
+      border-radius:28px;
+      padding:34px;
     }
 
-    h1{
-      margin:0 0 10px;
-      color:var(--brand);
+    .brand-head{
+      margin-bottom:24px;
       text-align:center;
+    }
+
+    .brand-head h1{
       font-size:38px;
-      letter-spacing:.3px;
+      line-height:1.1;
+      color:var(--brand);
+      margin-bottom:10px;
+      letter-spacing:.2px;
     }
 
-    p{
-      text-align:center;
-      color:var(--muted);
-      margin-bottom:20px;
-      line-height:1.5;
+    .brand-head p{
+      color:var(--text-soft);
+      line-height:1.6;
+      font-size:15px;
     }
 
     .tabs{
-      display:flex;
-      gap:10px;
-      margin-bottom:20px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
       background:#f3f4f6;
+      border:1px solid #eceff4;
+      border-radius:16px;
       padding:6px;
-      border-radius:14px;
+      margin-bottom:24px;
     }
 
     .tab{
-      flex:1;
-      padding:12px;
+      height:46px;
       border:none;
-      border-radius:10px;
-      cursor:pointer;
+      border-radius:12px;
       background:transparent;
-      font-weight:bold;
-      color:#4b5563;
-      transition:.2s;
+      color:#475467;
+      font-weight:700;
+      cursor:pointer;
+      transition:var(--transition);
     }
 
     .tab.active{
-      background:linear-gradient(135deg,var(--brand) 0%, #ff6a3d 100%);
       color:#fff;
-      box-shadow:0 8px 18px rgba(238,77,45,.24);
+      background:linear-gradient(135deg,var(--brand) 0%, var(--brand-2) 100%);
+      box-shadow:0 10px 20px rgba(238,77,45,.20);
     }
 
     .form{
@@ -110,299 +145,319 @@
       display:block;
     }
 
-    label{
-      display:block;
-      font-weight:bold;
-      margin:12px 0 6px;
-      color:#2d3748;
+    .field{
+      margin-bottom:16px;
     }
 
-    input, textarea{
+    .field label{
+      display:block;
+      font-size:14px;
+      font-weight:700;
+      color:#2f3a48;
+      margin-bottom:8px;
+    }
+
+    .input,
+    .textarea{
       width:100%;
+      border:1px solid var(--line-strong);
+      background:#fff;
+      color:var(--text);
+      border-radius:14px;
       padding:13px 14px;
-      border:1px solid #d9dde6;
-      border-radius:12px;
       font-size:15px;
       outline:none;
-      transition:.2s;
-      background:#fff;
+      transition:var(--transition);
     }
 
-    input:focus, textarea:focus{
+    .input:focus,
+    .textarea:focus{
       border-color:rgba(238,77,45,.55);
       box-shadow:0 0 0 4px rgba(238,77,45,.10);
     }
 
-    button.action{
-      width:100%;
+    .btn{
+      height:var(--btn-h);
       border:none;
-      background:linear-gradient(135deg,var(--brand) 0%, #ff6a3d 100%);
-      color:#fff;
-      padding:14px;
-      border-radius:12px;
-      font-size:16px;
+      border-radius:14px;
+      padding:0 16px;
+      font-size:14px;
+      font-weight:700;
       cursor:pointer;
-      margin-top:18px;
-      font-weight:bold;
+      transition:var(--transition);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      text-align:center;
+      white-space:nowrap;
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
+    }
+
+    .btn:disabled{
+      opacity:.6;
+      cursor:not-allowed;
+      transform:none;
+    }
+
+    .btn-primary{
+      background:linear-gradient(135deg,var(--brand) 0%, var(--brand-2) 100%);
+      color:#fff;
       box-shadow:0 10px 20px rgba(238,77,45,.18);
     }
 
-    button.action:hover,
-    .card button:hover,
-    .logout:hover,
-    .popup button:hover,
-    .toolbar-btn:hover{
-      transform:translateY(-1px);
-      opacity:.97;
+    .btn-dark{
+      background:linear-gradient(135deg,#4b5563 0%, #374151 100%);
+      color:#fff;
+    }
+
+    .btn-light{
+      background:#fff;
+      color:#344054;
+      border:1px solid var(--line);
+    }
+
+    .btn-danger{
+      background:linear-gradient(135deg,#ef4444 0%, #dc2626 100%);
+      color:#fff;
+    }
+
+    .btn-success{
+      background:linear-gradient(135deg,#16a34a 0%, #15803d 100%);
+      color:#fff;
+    }
+
+    .btn-info{
+      background:linear-gradient(135deg,#2563eb 0%, #1d4ed8 100%);
+      color:#fff;
+    }
+
+    .btn-block{
+      width:100%;
     }
 
     .msg{
-      margin-top:15px;
-      text-align:center;
-      font-weight:bold;
-      line-height:1.4;
       min-height:22px;
+      margin-top:16px;
+      text-align:center;
+      font-weight:700;
+      line-height:1.5;
+      font-size:14px;
     }
 
     .erro{ color:#c62828; }
     .ok{ color:#2e7d32; }
 
     .dica{
-      margin-top:10px;
-      font-size:13px;
-      color:#777;
+      margin-top:12px;
       text-align:center;
-      line-height:1.5;
-    }
-
-    .hidden{
-      display:none !important;
+      color:var(--text-soft);
+      font-size:13px;
+      line-height:1.6;
     }
 
     .admin-panel{
       display:none;
-      max-width:1250px;
+      max-width:1320px;
       margin:0 auto;
     }
 
-    .admin-header{
-      background:linear-gradient(135deg,#fff 0%, #fff7f5 100%);
-      border-radius:24px;
+    .topbar{
+      background:rgba(255,255,255,.9);
+      border:1px solid rgba(255,255,255,.9);
+      backdrop-filter:blur(8px);
+      border-radius:26px;
       padding:24px;
-      box-shadow:var(--shadow);
+      box-shadow:var(--shadow-md);
       display:flex;
-      justify-content:space-between;
       align-items:center;
-      gap:16px;
+      justify-content:space-between;
+      gap:18px;
       flex-wrap:wrap;
-      margin-bottom:22px;
-      border:1px solid rgba(238,77,45,.10);
+      margin-bottom:24px;
     }
 
-    .admin-header h2{
-      margin:0;
+    .topbar-left h2{
       color:var(--brand);
-      font-size:20px;
+      font-size:25px;
+      margin-bottom:8px;
     }
 
-    .admin-header p{
-      margin:8px 0 0;
-      text-align:left;
-      color:#4b5563;
+    .topbar-left p{
+      color:var(--text-soft);
+      line-height:1.6;
+      font-size:14px;
     }
 
-    .logout{
-      border:none;
-      background:#444;
-      color:#fff;
-      padding:12px 18px;
-      border-radius:12px;
-      cursor:pointer;
-      font-size:15px;
-      font-weight:bold;
+    .topbar-right{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .email-badge{
+      padding:10px 14px;
+      border-radius:999px;
+      background:var(--brand-soft);
+      color:var(--brand-dark);
+      font-weight:700;
+      font-size:14px;
+    }
+
+    .section-shell{
+      display:grid;
+      gap:20px;
     }
 
     .cards{
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+      grid-template-columns:repeat(auto-fit, minmax(270px, 1fr));
       gap:18px;
+      align-items:stretch;
     }
 
     .card{
-      background:var(--card);
-      border-radius:20px;
-      padding:22px;
-      box-shadow:var(--shadow);
+      background:var(--surface);
       border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow:var(--shadow-sm);
+      padding:22px;
+      display:flex;
+      flex-direction:column;
+      min-height:100%;
     }
 
-    .card h3{
-      margin:0 0 10px;
-      color:#161b26;
-      font-size:28px;
-      line-height:1.15;
+    .card-wide{
+      grid-column:1 / -1;
     }
 
-    .card p{
-      text-align:left;
-      margin:0 0 16px;
-      color:var(--muted);
+    .card-head{
+      margin-bottom:14px;
+    }
+
+    .card-head h3{
+      font-size:22px;
+      color:var(--title);
+      margin-bottom:8px;
+    }
+
+    .card-head p{
+      color:var(--text-soft);
       line-height:1.7;
-      font-size:15px;
+      font-size:14px;
     }
 
-    .card button{
-      width:100%;
-      border:none;
-      background:linear-gradient(135deg,var(--brand) 0%, #ff6a3d 100%);
-      color:#fff;
-      padding:12px;
-      border-radius:12px;
-      cursor:pointer;
-      font-size:15px;
-      font-weight:bold;
-      box-shadow:0 10px 20px rgba(238,77,45,.16);
+    .card-body{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
     }
 
-    .import-msg{
-      margin-top:12px;
-      font-weight:bold;
-      min-height:20px;
-      word-break:break-word;
-      line-height:1.5;
+    .card-actions{
+      margin-top:auto;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
     }
 
-    .file-box{
-      border:2px dashed #d9d9d9;
-      border-radius:16px;
-      padding:20px;
-      background:linear-gradient(180deg,#fcfcfd 0%, #fafafa 100%);
+    .upload-box{
+      border:1.5px dashed #d7dce5;
+      background:linear-gradient(180deg,#fcfdff 0%, #f8fafc 100%);
+      border-radius:18px;
+      padding:18px;
+    }
+
+    .upload-box .field{
+      margin-bottom:12px;
     }
 
     .file-help{
-      font-size:14px;
-      color:#666;
-      margin-top:10px;
-      line-height:1.6;
+      font-size:13px;
+      color:var(--text-soft);
+      line-height:1.7;
     }
 
     .preview-box{
+      display:none;
       margin-top:14px;
-      padding:14px;
+      border:1px solid var(--line);
+      border-radius:16px;
       background:#fff;
-      border:1px solid #eee;
-      border-radius:14px;
+      padding:14px;
     }
 
     .preview-title{
-      font-weight:bold;
+      font-weight:800;
+      color:#253041;
       margin-bottom:10px;
-      color:#333;
+      font-size:14px;
     }
 
     .preview-list{
-      margin:0;
       padding-left:18px;
-      color:#444;
-      line-height:1.6;
       max-height:180px;
       overflow:auto;
+      color:#445264;
+      line-height:1.7;
+      font-size:14px;
     }
 
-    .popup-overlay{
-      position:fixed;
-      inset:0;
-      background:rgba(17,24,39,.45);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:9999;
-      padding:20px;
-      backdrop-filter:blur(4px);
-    }
-
-    .popup{
-      background:#fff;
-      width:100%;
-      max-width:380px;
-      border-radius:18px;
-      padding:26px;
-      box-shadow:0 20px 50px rgba(0,0,0,.20);
-      text-align:center;
-    }
-
-    .popup h3{
-      margin:0 0 10px;
-      color:#222;
-      font-size:22px;
-    }
-
-    .popup p{
-      margin:0;
-      color:#555;
+    .import-msg{
+      min-height:22px;
+      font-weight:700;
       line-height:1.6;
-      text-align:center;
-    }
-
-    .popup button{
-      margin-top:18px;
-      border:none;
-      background:linear-gradient(135deg,var(--brand) 0%, #ff6a3d 100%);
-      color:#fff;
-      padding:12px 22px;
-      border-radius:12px;
-      cursor:pointer;
-      font-size:15px;
-      font-weight:bold;
+      font-size:14px;
+      word-break:break-word;
     }
 
     .module-panel{
-      margin-top:22px;
-      background:#fff;
-      border-radius:20px;
-      padding:22px;
-      box-shadow:var(--shadow);
+      background:var(--surface);
       border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow-sm);
+      padding:22px;
     }
 
-    .module-header{
+    .module-head{
       display:flex;
       justify-content:space-between;
-      align-items:center;
-      gap:12px;
+      align-items:flex-start;
+      gap:16px;
       flex-wrap:wrap;
-      margin-bottom:16px;
+      margin-bottom:18px;
+      padding-bottom:16px;
+      border-bottom:1px solid var(--line);
     }
 
-    .module-header h3{
-      margin:0;
-      color:#222;
+    .module-head-left h3{
       font-size:22px;
+      color:var(--title);
+      margin-bottom:6px;
     }
 
-    .toolbar-btn{
-      border:none;
-      background:linear-gradient(135deg,var(--brand) 0%, #ff6a3d 100%);
-      color:#fff;
-      padding:10px 14px;
-      border-radius:10px;
-      cursor:pointer;
+    .module-head-left p{
+      color:var(--text-soft);
       font-size:14px;
-      font-weight:bold;
+      line-height:1.6;
     }
 
-    .toolbar-btn.secondary{
-      background:#555;
-    }
-
-    .toolbar-btn.danger{
-      background:linear-gradient(135deg,#444 0%, #2f2f2f 100%);
+    .module-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
     }
 
     .table-wrap{
       overflow:auto;
       border:1px solid var(--line);
-      border-radius:14px;
+      border-radius:18px;
+      background:#fff;
     }
 
     table{
@@ -416,30 +471,43 @@
     }
 
     th, td{
-      padding:13px 12px;
+      padding:14px 12px;
       border-bottom:1px solid var(--line);
       text-align:left;
-      font-size:14px;
       vertical-align:middle;
     }
 
     th{
-      color:#334155;
-      font-size:13px;
+      font-size:12px;
+      color:#475467;
       text-transform:uppercase;
-      letter-spacing:.04em;
+      letter-spacing:.05em;
+      font-weight:800;
     }
 
     td{
-      color:#475467;
+      font-size:14px;
+      color:#344054;
+    }
+
+    tbody tr:hover{
+      background:#fafcff;
+    }
+
+    .empty-state{
+      text-align:center;
+      color:var(--text-soft);
+      padding:22px;
     }
 
     .status-badge{
-      display:inline-block;
-      padding:7px 10px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:7px 12px;
       border-radius:999px;
       font-size:12px;
-      font-weight:bold;
+      font-weight:800;
       text-transform:uppercase;
       white-space:nowrap;
     }
@@ -460,64 +528,192 @@
     }
 
     .status-cancelled{
-      background:var(--cancel-bg);
-      color:var(--cancel-tx);
-    }
-
-    .empty-state{
-      padding:18px;
-      color:#666;
-      text-align:center;
+      background:var(--neutral-bg);
+      color:var(--neutral-tx);
     }
 
     .admin-form-grid{
       display:grid;
-      grid-template-columns:2fr 1fr;
+      grid-template-columns:minmax(0, 2fr) 220px;
       gap:12px;
       margin-bottom:16px;
+      align-items:end;
     }
 
     .action-wrap{
       display:flex;
+      align-items:center;
       gap:8px;
       flex-wrap:wrap;
     }
 
     .mini-btn{
+      min-width:104px;
+      height:38px;
       border:none;
       border-radius:10px;
-      padding:8px 10px;
-      font-size:12px;
-      cursor:pointer;
-      font-weight:bold;
+      padding:0 12px;
       color:#fff;
+      font-size:12px;
+      font-weight:800;
+      cursor:pointer;
+      transition:var(--transition);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .mini-btn:hover{
+      transform:translateY(-1px);
     }
 
     .mini-btn.activate{
-      background:#198754;
+      background:linear-gradient(135deg,#16a34a 0%, #15803d 100%);
     }
 
     .mini-btn.deactivate{
-      background:#dc3545;
+      background:linear-gradient(135deg,#ef4444 0%, #dc2626 100%);
     }
 
     .mini-btn.reassign{
-      background:#0d6efd;
+      background:linear-gradient(135deg,#2563eb 0%, #1d4ed8 100%);
     }
 
-    @media (max-width: 700px){
-      body{ padding:16px; }
-      .admin-form-grid{ grid-template-columns:1fr; }
-      .card h3{ font-size:24px; }
+    .modal-overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,.48);
+      backdrop-filter:blur(5px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      z-index:9999;
+    }
+
+    .modal{
+      width:100%;
+      max-width:440px;
+      background:#fff;
+      border-radius:24px;
+      box-shadow:0 24px 70px rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.8);
+      overflow:hidden;
+      animation:fadeUp .18s ease;
+    }
+
+    .modal-head{
+      padding:20px 22px 12px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .modal-head h3{
+      font-size:22px;
+      color:var(--title);
+      margin-bottom:6px;
+    }
+
+    .modal-head p{
+      color:var(--text-soft);
+      line-height:1.6;
+      font-size:14px;
+    }
+
+    .modal-body{
+      padding:18px 22px;
+    }
+
+    .modal-body p{
+      color:#445264;
+      line-height:1.7;
+      font-size:14px;
+    }
+
+    .modal-input{
+      margin-top:14px;
+    }
+
+    .modal-actions{
+      padding:0 22px 22px;
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+
+    @keyframes fadeUp{
+      from{
+        opacity:0;
+        transform:translateY(8px) scale(.98);
+      }
+      to{
+        opacity:1;
+        transform:translateY(0) scale(1);
+      }
+    }
+
+    @media (max-width: 860px){
+      body{
+        padding:16px;
+      }
+
+      .topbar{
+        padding:18px;
+      }
+
+      .admin-form-grid{
+        grid-template-columns:1fr;
+      }
+
+      .module-actions,
+      .topbar-right{
+        width:100%;
+      }
+
+      .module-actions .btn,
+      .topbar-right .btn{
+        flex:1;
+      }
+    }
+
+    @media (max-width: 640px){
+      .login-card{
+        padding:24px 18px;
+        border-radius:22px;
+      }
+
+      .brand-head h1{
+        font-size:32px;
+      }
+
+      .topbar-left h2{
+        font-size:22px;
+      }
+
+      .card,
+      .module-panel{
+        padding:16px;
+      }
+
+      .module-actions .btn,
+      .card-actions .btn{
+        width:100%;
+      }
+
+      .modal-actions .btn{
+        width:100%;
+      }
     }
   </style>
 </head>
 <body>
 
   <div class="auth-wrap" id="authWrap">
-    <div class="box">
-      <h1>Admin</h1>
-      <p>Entre ou cadastre-se com e-mail corporativo.</p>
+    <div class="login-card">
+      <div class="brand-head">
+        <h1>Admin</h1>
+        <p>Entre ou cadastre-se com seu e-mail corporativo para acessar o painel administrativo.</p>
+      </div>
 
       <div class="tabs">
         <button class="tab active" id="tabLogin" type="button">Entrar</button>
@@ -525,23 +721,31 @@
       </div>
 
       <div id="formLogin" class="form active">
-        <label for="loginEmail">E-mail</label>
-        <input type="email" id="loginEmail" placeholder="seu.nome@shopee.com">
+        <div class="field">
+          <label for="loginEmail">E-mail</label>
+          <input class="input" type="email" id="loginEmail" placeholder="seu.nome@shopee.com">
+        </div>
 
-        <label for="loginSenha">Senha</label>
-        <input type="password" id="loginSenha" placeholder="Digite sua senha">
+        <div class="field">
+          <label for="loginSenha">Senha</label>
+          <input class="input" type="password" id="loginSenha" placeholder="Digite sua senha">
+        </div>
 
-        <button class="action" id="btnEntrar" type="button">Entrar</button>
+        <button class="btn btn-primary btn-block" id="btnEntrar" type="button">Entrar</button>
       </div>
 
       <div id="formCadastro" class="form">
-        <label for="cadEmail">E-mail corporativo</label>
-        <input type="email" id="cadEmail" placeholder="seu.nome@shopee.com">
+        <div class="field">
+          <label for="cadEmail">E-mail corporativo</label>
+          <input class="input" type="email" id="cadEmail" placeholder="seu.nome@shopee.com">
+        </div>
 
-        <label for="cadSenha">Senha</label>
-        <input type="password" id="cadSenha" placeholder="Crie uma senha">
+        <div class="field">
+          <label for="cadSenha">Senha</label>
+          <input class="input" type="password" id="cadSenha" placeholder="Crie uma senha">
+        </div>
 
-        <button class="action" id="btnCadastrar" type="button">Cadastrar</button>
+        <button class="btn btn-primary btn-block" id="btnCadastrar" type="button">Cadastrar</button>
         <div class="dica">Somente e-mails com domínio @shopee.com podem se cadastrar.</div>
       </div>
 
@@ -550,138 +754,177 @@
   </div>
 
   <div class="admin-panel" id="adminPanel">
-    <div class="admin-header">
-      <div>
+    <div class="topbar">
+      <div class="topbar-left">
         <h2>Painel Administrativo</h2>
-        <p><strong>Admin logado:</strong> <span id="adminEmail"></span></p>
+        <p>Área central para importar rotas, gerenciar admins e acompanhar respostas dos motoristas.</p>
       </div>
 
-      <button class="logout" id="btnSair" type="button">Sair</button>
+      <div class="topbar-right">
+        <div class="email-badge">Admin: <span id="adminEmail"></span></div>
+        <button class="btn btn-dark" id="btnSair" type="button">Sair</button>
+      </div>
     </div>
 
-    <div class="cards">
-      <div class="card" style="grid-column:1/-1;">
-        <h3>Importar Rotas</h3>
-        <p>Envie um arquivo CSV ou XLSX contendo as colunas de ID e CLUSTER.</p>
-
-        <div class="file-box">
-          <label for="arquivoRotas">Selecionar arquivo</label>
-          <input type="file" id="arquivoRotas" accept=".csv,.xlsx,.xls">
-
-          <div class="file-help">
-            Formatos aceitos: <strong>.csv</strong>, <strong>.xlsx</strong> e <strong>.xls</strong>.<br>
-            O arquivo deve conter colunas com nomes como <strong>ID</strong> e <strong>CLUSTER</strong>.
+    <div class="section-shell">
+      <div class="cards">
+        <div class="card card-wide">
+          <div class="card-head">
+            <h3>Importar Rotas</h3>
+            <p>Envie um arquivo CSV, XLSX ou XLS contendo as colunas de ID e CLUSTER para disponibilizar as rotas no sistema.</p>
           </div>
 
-          <div class="preview-box" id="previewBox" style="display:none;">
-            <div class="preview-title">Prévia das rotas encontradas</div>
-            <ol class="preview-list" id="previewList"></ol>
+          <div class="card-body">
+            <div class="upload-box">
+              <div class="field">
+                <label for="arquivoRotas">Selecionar arquivo</label>
+                <input class="input" type="file" id="arquivoRotas" accept=".csv,.xlsx,.xls">
+              </div>
+
+              <div class="file-help">
+                Formatos aceitos: <strong>.csv</strong>, <strong>.xlsx</strong> e <strong>.xls</strong>.<br>
+                O arquivo deve conter colunas com nomes como <strong>ID</strong> e <strong>CLUSTER</strong>.
+              </div>
+
+              <div class="preview-box" id="previewBox">
+                <div class="preview-title">Prévia das rotas encontradas</div>
+                <ol class="preview-list" id="previewList"></ol>
+              </div>
+            </div>
+
+            <div class="card-actions">
+              <button type="button" class="btn btn-primary btn-block" id="btnImportarRotas">Importar Rotas</button>
+              <button type="button" class="btn btn-dark btn-block" id="btnLimparRotas">Limpar Rotas</button>
+            </div>
+
+            <div id="importMsg" class="import-msg"></div>
           </div>
         </div>
 
-        <button type="button" id="btnImportarRotas" style="margin-top:12px;">
-          Importar Rotas
-        </button>
+        <div class="card">
+          <div class="card-head">
+            <h3>Painel de Rotas</h3>
+            <p>Visualize rotas importadas, acompanhe respostas, cancelamentos e faça o repasse para outro motorista.</p>
+          </div>
 
-        <button type="button" id="btnLimparRotas" style="margin-top:10px;background:#444;">
-          Limpar Rotas
-        </button>
+          <div class="card-actions">
+            <button type="button" class="btn btn-primary btn-block" id="btnAbrirPainelRotas">Abrir módulo</button>
+          </div>
+        </div>
 
-        <div id="importMsg" class="import-msg"></div>
-      </div>
+        <div class="card">
+          <div class="card-head">
+            <h3>Gerenciar Admins</h3>
+            <p>Controle quais e-mails corporativos possuem acesso administrativo ao painel.</p>
+          </div>
 
-      <div class="card">
-        <h3>Painel de Rotas</h3>
-        <p>Veja rotas importadas, respostas, cancelamentos e faça o repasse para outro motorista.</p>
-        <button type="button" id="btnAbrirPainelRotas">Abrir módulo</button>
-      </div>
-
-      <div class="card">
-        <h3>Gerenciar Admins</h3>
-        <p>Controle quais e-mails corporativos têm acesso ao painel administrativo.</p>
-        <button type="button" id="btnAbrirAdmins">Abrir módulo</button>
-      </div>
-    </div>
-
-    <div class="module-panel hidden" id="painelRotasPanel">
-      <div class="module-header">
-        <h3>Painel de Rotas</h3>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button type="button" class="toolbar-btn" id="btnAtualizarPainelRotas">Atualizar</button>
-          <button type="button" class="toolbar-btn danger" id="btnLimparRotasPainel">Limpar Rotas</button>
-          <button type="button" class="toolbar-btn secondary" id="btnFecharPainelRotas">Fechar</button>
+          <div class="card-actions">
+            <button type="button" class="btn btn-primary btn-block" id="btnAbrirAdmins">Abrir módulo</button>
+          </div>
         </div>
       </div>
 
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>ID Motorista</th>
-              <th>Nome</th>
-              <th>Cluster</th>
-              <th>Turno</th>
-              <th>Status</th>
-              <th>Enviado em</th>
-              <th>Respondido em</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="painelRotasTable">
-            <tr>
-              <td colspan="8" class="empty-state">Nenhuma rota carregada.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+      <div class="module-panel hidden" id="painelRotasPanel">
+        <div class="module-head">
+          <div class="module-head-left">
+            <h3>Painel de Rotas</h3>
+            <p>Gerencie as rotas já enviadas aos motoristas e execute ações administrativas.</p>
+          </div>
 
-    <div class="module-panel hidden" id="adminsPanel">
-      <div class="module-header">
-        <h3>Gerenciar Admins</h3>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button type="button" class="toolbar-btn" id="btnAtualizarAdmins">Atualizar</button>
-          <button type="button" class="toolbar-btn secondary" id="btnFecharAdmins">Fechar</button>
+          <div class="module-actions">
+            <button type="button" class="btn btn-primary" id="btnAtualizarPainelRotas">Atualizar</button>
+            <button type="button" class="btn btn-danger" id="btnLimparRotasPainel">Limpar Rotas</button>
+            <button type="button" class="btn btn-light" id="btnFecharPainelRotas">Fechar</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID Motorista</th>
+                <th>Nome</th>
+                <th>Cluster</th>
+                <th>Turno</th>
+                <th>Status</th>
+                <th>Enviado em</th>
+                <th>Respondido em</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="painelRotasTable">
+              <tr>
+                <td colspan="8" class="empty-state">Nenhuma rota carregada.</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <div class="admin-form-grid">
-        <div>
-          <label for="novoAdminEmail">Novo e-mail admin</label>
-          <input type="email" id="novoAdminEmail" placeholder="novo.admin@shopee.com">
-        </div>
-        <div style="display:flex; align-items:end;">
-          <button type="button" class="toolbar-btn" id="btnAdicionarAdmin" style="width:100%;">Adicionar</button>
-        </div>
-      </div>
+      <div class="module-panel hidden" id="adminsPanel">
+        <div class="module-head">
+          <div class="module-head-left">
+            <h3>Gerenciar Admins</h3>
+            <p>Adicione, ative ou desative administradores autorizados a entrar no sistema.</p>
+          </div>
 
-      <div id="adminManageMsg" class="import-msg"></div>
+          <div class="module-actions">
+            <button type="button" class="btn btn-primary" id="btnAtualizarAdmins">Atualizar</button>
+            <button type="button" class="btn btn-light" id="btnFecharAdmins">Fechar</button>
+          </div>
+        </div>
 
-      <div class="table-wrap" style="margin-top:14px;">
-        <table>
-          <thead>
-            <tr>
-              <th>E-mail</th>
-              <th>Status</th>
-              <th>Criado em</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody id="adminsTable">
-            <tr>
-              <td colspan="4" class="empty-state">Nenhum admin carregado.</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="admin-form-grid">
+          <div class="field" style="margin-bottom:0;">
+            <label for="novoAdminEmail">Novo e-mail admin</label>
+            <input class="input" type="email" id="novoAdminEmail" placeholder="novo.admin@shopee.com">
+          </div>
+
+          <button type="button" class="btn btn-primary btn-block" id="btnAdicionarAdmin">Adicionar</button>
+        </div>
+
+        <div id="adminManageMsg" class="import-msg"></div>
+
+        <div class="table-wrap" style="margin-top:14px;">
+          <table>
+            <thead>
+              <tr>
+                <th>E-mail</th>
+                <th>Status</th>
+                <th>Criado em</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="adminsTable">
+              <tr>
+                <td colspan="4" class="empty-state">Nenhum admin carregado.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="popup-overlay" id="popup">
-    <div class="popup">
-      <h3 id="popupTitle">Aviso</h3>
-      <p id="popupText"></p>
-      <button type="button" id="popupBtn">OK</button>
+  <div class="modal-overlay" id="appModal">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="modalTitle">Aviso</h3>
+        <p id="modalSubtitle">Confira as informações abaixo.</p>
+      </div>
+
+      <div class="modal-body">
+        <p id="modalText"></p>
+
+        <div class="modal-input hidden" id="modalInputWrap">
+          <input class="input" type="text" id="modalInput" placeholder="">
+        </div>
+      </div>
+
+      <div class="modal-actions" id="modalActions">
+        <button type="button" class="btn btn-light" id="modalCancelBtn">Cancelar</button>
+        <button type="button" class="btn btn-primary" id="modalConfirmBtn">OK</button>
+      </div>
     </div>
   </div>
 
@@ -711,11 +954,6 @@
     const msg = document.getElementById("msg");
     const adminEmail = document.getElementById("adminEmail");
 
-    const popup = document.getElementById("popup");
-    const popupTitle = document.getElementById("popupTitle");
-    const popupText = document.getElementById("popupText");
-    const popupBtn = document.getElementById("popupBtn");
-
     const arquivoRotas = document.getElementById("arquivoRotas");
     const btnImportarRotas = document.getElementById("btnImportarRotas");
     const btnLimparRotas = document.getElementById("btnLimparRotas");
@@ -739,7 +977,18 @@
     const novoAdminEmail = document.getElementById("novoAdminEmail");
     const adminManageMsg = document.getElementById("adminManageMsg");
 
+    const appModal = document.getElementById("appModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalSubtitle = document.getElementById("modalSubtitle");
+    const modalText = document.getElementById("modalText");
+    const modalActions = document.getElementById("modalActions");
+    const modalCancelBtn = document.getElementById("modalCancelBtn");
+    const modalConfirmBtn = document.getElementById("modalConfirmBtn");
+    const modalInputWrap = document.getElementById("modalInputWrap");
+    const modalInput = document.getElementById("modalInput");
+
     let rotasProcessadas = [];
+    let modalResolver = null;
 
     function limparMensagem() {
       msg.className = "msg";
@@ -771,16 +1020,6 @@
       return email.toLowerCase().endsWith("@shopee.com");
     }
 
-    function abrirPopup(titulo, texto) {
-      popupTitle.textContent = titulo;
-      popupText.textContent = texto;
-      popup.style.display = "flex";
-    }
-
-    function fecharPopup() {
-      popup.style.display = "none";
-    }
-
     function abrirPainel(email) {
       authWrap.classList.add("hidden");
       adminPanel.style.display = "block";
@@ -795,6 +1034,148 @@
       limparMensagem();
       mostrarLogin();
     }
+
+    function setTextoMensagem(el, texto, cor) {
+      el.textContent = texto;
+      el.style.color = cor || "";
+    }
+
+    function fecharModal() {
+      appModal.style.display = "none";
+      modalInputWrap.classList.add("hidden");
+      modalInput.value = "";
+      modalInput.placeholder = "";
+      modalResolver = null;
+    }
+
+    function abrirModalBase({
+      title = "Aviso",
+      subtitle = "",
+      text = "",
+      confirmText = "OK",
+      cancelText = "Cancelar",
+      showCancel = false,
+      showInput = false,
+      inputPlaceholder = "",
+      confirmClass = "btn-primary"
+    }) {
+      modalTitle.textContent = title;
+      modalSubtitle.textContent = subtitle || "Confira as informações abaixo.";
+      modalText.textContent = text;
+
+      modalConfirmBtn.textContent = confirmText;
+      modalCancelBtn.textContent = cancelText;
+
+      modalConfirmBtn.className = `btn ${confirmClass}`;
+      modalCancelBtn.className = "btn btn-light";
+
+      modalCancelBtn.style.display = showCancel ? "inline-flex" : "none";
+
+      if (showInput) {
+        modalInputWrap.classList.remove("hidden");
+        modalInput.placeholder = inputPlaceholder || "";
+        setTimeout(() => modalInput.focus(), 50);
+      } else {
+        modalInputWrap.classList.add("hidden");
+        modalInput.value = "";
+      }
+
+      appModal.style.display = "flex";
+    }
+
+    function modalAlert(title, text, subtitle = "Mensagem do sistema") {
+      return new Promise((resolve) => {
+        abrirModalBase({
+          title,
+          subtitle,
+          text,
+          confirmText: "OK",
+          showCancel: false,
+          confirmClass: "btn-primary"
+        });
+
+        modalResolver = resolve;
+      });
+    }
+
+    function modalConfirm(title, text, subtitle = "Confirmação necessária") {
+      return new Promise((resolve) => {
+        abrirModalBase({
+          title,
+          subtitle,
+          text,
+          confirmText: "Confirmar",
+          cancelText: "Cancelar",
+          showCancel: true,
+          confirmClass: "btn-danger"
+        });
+
+        modalResolver = resolve;
+      });
+    }
+
+    function modalPrompt(title, text, inputPlaceholder = "Digite aqui", subtitle = "Preencha para continuar") {
+      return new Promise((resolve) => {
+        abrirModalBase({
+          title,
+          subtitle,
+          text,
+          confirmText: "Continuar",
+          cancelText: "Cancelar",
+          showCancel: true,
+          showInput: true,
+          inputPlaceholder,
+          confirmClass: "btn-info"
+        });
+
+        modalResolver = resolve;
+      });
+    }
+
+    modalConfirmBtn.addEventListener("click", () => {
+      if (!modalResolver) return fecharModal();
+
+      const isPrompt = !modalInputWrap.classList.contains("hidden");
+      if (isPrompt) {
+        const valor = modalInput.value.trim();
+        const resolver = modalResolver;
+        fecharModal();
+        resolver(valor);
+        return;
+      }
+
+      const resolver = modalResolver;
+      fecharModal();
+      resolver(true);
+    });
+
+    modalCancelBtn.addEventListener("click", () => {
+      if (!modalResolver) return fecharModal();
+      const resolver = modalResolver;
+      const isPrompt = !modalInputWrap.classList.contains("hidden");
+      fecharModal();
+      resolver(isPrompt ? "" : false);
+    });
+
+    appModal.addEventListener("click", (e) => {
+      if (e.target === appModal) {
+        if (!modalResolver) {
+          fecharModal();
+          return;
+        }
+
+        const isPrompt = !modalInputWrap.classList.contains("hidden");
+        const resolver = modalResolver;
+        fecharModal();
+        resolver(isPrompt ? "" : false);
+      }
+    });
+
+    modalInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        modalConfirmBtn.click();
+      }
+    });
 
     async function validarAdmin(email) {
       const resposta = await fetch("api/admin-login.php", {
@@ -978,11 +1359,14 @@
     }
 
     async function limparRotas() {
-      const confirmar = confirm("Tem certeza que deseja limpar todas as rotas atuais?");
+      const confirmar = await modalConfirm(
+        "Limpar rotas",
+        "Tem certeza que deseja remover todas as rotas atuais do sistema?"
+      );
+
       if (!confirmar) return;
 
-      importMsg.textContent = "";
-      importMsg.style.color = "";
+      setTextoMensagem(importMsg, "", "");
 
       try {
         const resposta = await fetch("api/limpar_rotas.php", {
@@ -992,25 +1376,26 @@
         const resultado = await resposta.json();
 
         if (!resultado.ok) {
-          importMsg.textContent = resultado.error || "Erro ao limpar rotas.";
-          importMsg.style.color = "#c62828";
+          setTextoMensagem(importMsg, resultado.error || "Erro ao limpar rotas.", "#c62828");
           console.error("DEBUG limpar_rotas:", resultado.debug || resultado);
           return;
         }
 
-        importMsg.textContent = "Todas as rotas foram removidas com sucesso.";
-        importMsg.style.color = "#2e7d32";
-
+        setTextoMensagem(importMsg, "Todas as rotas foram removidas com sucesso.", "#2e7d32");
         await carregarPainelRotas();
       } catch (e) {
         console.error("Erro limpar rotas:", e);
-        importMsg.textContent = "Erro de comunicação ao limpar rotas.";
-        importMsg.style.color = "#c62828";
+        setTextoMensagem(importMsg, "Erro de comunicação ao limpar rotas.", "#c62828");
       }
     }
 
     async function cancelarRota(routeId) {
-      if (!confirm("Deseja cancelar esta rota?")) return;
+      const confirmar = await modalConfirm(
+        "Cancelar rota",
+        "Deseja realmente cancelar esta rota?"
+      );
+
+      if (!confirmar) return;
 
       try {
         const resposta = await fetch("api/atualizar_rota_admin.php", {
@@ -1025,18 +1410,22 @@
         const resultado = await resposta.json();
 
         if (!resultado.ok) {
-          abrirPopup("Erro", resultado.error || "Erro ao cancelar rota.");
+          await modalAlert("Erro", resultado.error || "Erro ao cancelar rota.");
           return;
         }
 
         await carregarPainelRotas();
       } catch (e) {
-        abrirPopup("Erro", "Erro de comunicação ao cancelar rota.");
+        await modalAlert("Erro", "Erro de comunicação ao cancelar rota.");
       }
     }
 
     async function repassarRota(routeId) {
-      const novoDriver = prompt("Digite o novo ID do motorista para repasse:");
+      const novoDriver = await modalPrompt(
+        "Repassar rota",
+        "Digite o novo ID do motorista para receber esta rota.",
+        "Ex.: 123456"
+      );
 
       if (!novoDriver) return;
 
@@ -1054,13 +1443,13 @@
         const resultado = await resposta.json();
 
         if (!resultado.ok) {
-          abrirPopup("Erro", resultado.error || "Erro ao repassar rota.");
+          await modalAlert("Erro", resultado.error || "Erro ao repassar rota.");
           return;
         }
 
         await carregarPainelRotas();
       } catch (e) {
-        abrirPopup("Erro", "Erro de comunicação ao repassar rota.");
+        await modalAlert("Erro", "Erro de comunicação ao repassar rota.");
       }
     }
 
@@ -1070,7 +1459,7 @@
 
     async function carregarAdmins() {
       adminsPanel.classList.remove("hidden");
-      adminManageMsg.textContent = "";
+      setTextoMensagem(adminManageMsg, "", "");
       adminsTable.innerHTML = `
         <tr>
           <td colspan="4" class="empty-state">Carregando admins...</td>
@@ -1144,20 +1533,19 @@
         const resultado = await resposta.json();
 
         if (!resultado.ok) {
-          adminManageMsg.textContent = resultado.error || "Erro ao atualizar admin.";
-          adminManageMsg.style.color = "#c62828";
+          setTextoMensagem(adminManageMsg, resultado.error || "Erro ao atualizar admin.", "#c62828");
           return;
         }
 
-        adminManageMsg.textContent = active
-          ? "Admin ativado com sucesso."
-          : "Admin desativado com sucesso.";
-        adminManageMsg.style.color = "#2e7d32";
+        setTextoMensagem(
+          adminManageMsg,
+          active ? "Admin ativado com sucesso." : "Admin desativado com sucesso.",
+          "#2e7d32"
+        );
 
         await carregarAdmins();
       } catch (e) {
-        adminManageMsg.textContent = "Erro de comunicação ao atualizar admin.";
-        adminManageMsg.style.color = "#c62828";
+        setTextoMensagem(adminManageMsg, "Erro de comunicação ao atualizar admin.", "#c62828");
       }
     }
 
@@ -1165,7 +1553,6 @@
 
     tabLogin.addEventListener("click", mostrarLogin);
     tabCadastro.addEventListener("click", mostrarCadastro);
-    popupBtn.addEventListener("click", fecharPopup);
 
     btnAbrirPainelRotas.addEventListener("click", carregarPainelRotas);
     btnAtualizarPainelRotas.addEventListener("click", carregarPainelRotas);
@@ -1183,8 +1570,7 @@
     btnLimparRotas.addEventListener("click", limparRotas);
 
     arquivoRotas.addEventListener("change", async (event) => {
-      importMsg.textContent = "";
-      importMsg.style.color = "";
+      setTextoMensagem(importMsg, "", "");
       rotasProcessadas = [];
       previewBox.style.display = "none";
       previewList.innerHTML = "";
@@ -1198,16 +1584,13 @@
         atualizarPreview(rotas);
 
         if (!rotas.length) {
-          importMsg.textContent = "Não foi possível encontrar colunas válidas de ID e CLUSTER no arquivo.";
-          importMsg.style.color = "#c62828";
+          setTextoMensagem(importMsg, "Não foi possível encontrar colunas válidas de ID e CLUSTER no arquivo.", "#c62828");
           return;
         }
 
-        importMsg.textContent = `${rotas.length} rota(s) encontrada(s) no arquivo.`;
-        importMsg.style.color = "#2e7d32";
+        setTextoMensagem(importMsg, `${rotas.length} rota(s) encontrada(s) no arquivo.`, "#2e7d32");
       } catch (error) {
-        importMsg.textContent = "Erro ao ler o arquivo selecionado.";
-        importMsg.style.color = "#c62828";
+        setTextoMensagem(importMsg, "Erro ao ler o arquivo selecionado.", "#c62828");
       }
     });
 
@@ -1235,7 +1618,7 @@
       const { error } = await supabaseClient.auth.signUp({ email, password });
 
       if (error) {
-        abrirPopup("Erro no cadastro", error.message);
+        await modalAlert("Erro no cadastro", error.message);
         return;
       }
 
@@ -1243,7 +1626,7 @@
       cadSenha.value = "";
       mostrarLogin();
 
-      abrirPopup(
+      await modalAlert(
         "Cadastro realizado com sucesso",
         "Sua conta foi criada. Agora esse e-mail precisa estar liberado na tabela admin_users para acessar o painel."
       );
@@ -1292,14 +1675,12 @@
       const email = novoAdminEmail.value.trim().toLowerCase();
 
       if (!email) {
-        adminManageMsg.textContent = "Digite um e-mail para adicionar.";
-        adminManageMsg.style.color = "#c62828";
+        setTextoMensagem(adminManageMsg, "Digite um e-mail para adicionar.", "#c62828");
         return;
       }
 
       if (!emailShopeeValido(email)) {
-        adminManageMsg.textContent = "Somente e-mails @shopee.com podem ser adicionados.";
-        adminManageMsg.style.color = "#c62828";
+        setTextoMensagem(adminManageMsg, "Somente e-mails @shopee.com podem ser adicionados.", "#c62828");
         return;
       }
 
@@ -1317,28 +1698,23 @@
         const resultado = await resposta.json();
 
         if (!resultado.ok) {
-          adminManageMsg.textContent = resultado.error || "Erro ao adicionar admin.";
-          adminManageMsg.style.color = "#c62828";
+          setTextoMensagem(adminManageMsg, resultado.error || "Erro ao adicionar admin.", "#c62828");
           return;
         }
 
-        adminManageMsg.textContent = "Admin adicionado com sucesso.";
-        adminManageMsg.style.color = "#2e7d32";
+        setTextoMensagem(adminManageMsg, "Admin adicionado com sucesso.", "#2e7d32");
         novoAdminEmail.value = "";
         await carregarAdmins();
       } catch (e) {
-        adminManageMsg.textContent = "Erro de comunicação ao adicionar admin.";
-        adminManageMsg.style.color = "#c62828";
+        setTextoMensagem(adminManageMsg, "Erro de comunicação ao adicionar admin.", "#c62828");
       }
     });
 
     btnImportarRotas.addEventListener("click", async () => {
-      importMsg.textContent = "";
-      importMsg.style.color = "";
+      setTextoMensagem(importMsg, "", "");
 
       if (!rotasProcessadas.length) {
-        importMsg.textContent = "Selecione um arquivo CSV ou XLSX com rotas válidas.";
-        importMsg.style.color = "#c62828";
+        setTextoMensagem(importMsg, "Selecione um arquivo CSV ou XLSX com rotas válidas.", "#c62828");
         return;
       }
 
@@ -1370,8 +1746,7 @@
             detalhe += " | Erros insert: " + JSON.stringify(resultado.erros_insert);
           }
 
-          importMsg.textContent = detalhe;
-          importMsg.style.color = "#c62828";
+          setTextoMensagem(importMsg, detalhe, "#c62828");
           return;
         }
 
@@ -1385,8 +1760,8 @@
           sucesso += ` | Falhas: ${JSON.stringify(resultado.erros_insert)}`;
         }
 
-        importMsg.textContent = sucesso;
-        importMsg.style.color = "#2e7d32";
+        setTextoMensagem(importMsg, sucesso, "#2e7d32");
+
         arquivoRotas.value = "";
         rotasProcessadas = [];
         previewBox.style.display = "none";
@@ -1394,8 +1769,7 @@
 
         await carregarPainelRotas();
       } catch (e) {
-        importMsg.textContent = "Erro de comunicação com o servidor.";
-        importMsg.style.color = "#c62828";
+        setTextoMensagem(importMsg, "Erro de comunicação com o servidor.", "#c62828");
       }
     });
 
