@@ -8,195 +8,424 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    *{box-sizing:border-box}
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
 
     :root{
-      --bg:#f6f8fc;
-      --card:#ffffff;
-      --line:#eceef3;
-      --text:#1f2937;
-      --muted:#667085;
+      --bg:#f4f7fb;
+      --bg-soft:#fbfcfe;
+      --surface:#ffffff;
+      --surface-2:#f8fafc;
+      --line:#e6eaf0;
+      --line-strong:#d8dee8;
+
+      --text:#182230;
+      --text-soft:#667085;
+      --title:#101828;
+
       --brand:#ee4d2d;
+      --brand-2:#ff6a3d;
+      --brand-dark:#d94223;
+      --brand-soft:rgba(238,77,45,.10);
+
       --ok:#198754;
-      --bad:#dc3545;
+      --ok-2:#2bb673;
       --ok-bg:#e9f7ef;
       --ok-border:#b7e4c7;
-      --shadow:0 12px 30px rgba(16,24,40,.08);
+
+      --bad:#dc3545;
+      --bad-2:#ff5c6c;
+      --bad-bg:#fee2e2;
+      --bad-border:#f5b5bc;
+
+      --pending-bg:#fff3cd;
+      --pending-border:#f7df8a;
+      --pending-text:#8a6d3b;
+
+      --shadow-sm:0 10px 24px rgba(16,24,40,.07);
+      --shadow-md:0 16px 38px rgba(16,24,40,.10);
+      --shadow-lg:0 22px 56px rgba(16,24,40,.14);
+
+      --radius-sm:12px;
+      --radius-md:18px;
+      --radius-lg:24px;
+
+      --btn-h:48px;
+      --transition:.22s ease;
     }
 
     body{
       margin:0;
       min-height:100vh;
-      font-family:Arial, Helvetica, sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(238,77,45,.10), transparent 24%),
-        linear-gradient(180deg,#f8fafc 0%, #f2f4f8 100%);
-      padding:24px;
+      font-family:Inter, Arial, Helvetica, sans-serif;
       color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(238,77,45,.10), transparent 22%),
+        radial-gradient(circle at top right, rgba(255,106,61,.08), transparent 18%),
+        linear-gradient(180deg,#f8fafc 0%, #f2f5fa 100%);
+      padding:24px;
     }
 
     .wrap{
-      max-width:1000px;
+      max-width:1100px;
       margin:0 auto;
     }
 
-    .header,.card{
-      background:var(--card);
-      border-radius:22px;
-      padding:22px;
-      box-shadow:var(--shadow);
-      margin-bottom:18px;
-      border:1px solid rgba(255,255,255,.75);
+    .header,
+    .card{
+      background:rgba(255,255,255,.92);
+      border:1px solid rgba(255,255,255,.85);
+      backdrop-filter:blur(8px);
+      border-radius:26px;
+      box-shadow:var(--shadow-md);
+      margin-bottom:20px;
     }
 
     .header{
+      padding:24px;
       display:flex;
       justify-content:space-between;
       align-items:center;
-      gap:12px;
+      gap:16px;
       flex-wrap:wrap;
-      background:linear-gradient(135deg,#fff 0%, #fff7f5 100%);
+      background:linear-gradient(135deg,#ffffff 0%, #fff7f5 100%);
     }
 
-    .header h1{
-      margin:0;
-      color:var(--brand);
-      font-size:34px;
+    .header-left h1{
+      margin:0 0 8px;
+      font-size:36px;
       line-height:1.1;
+      color:var(--brand);
+      letter-spacing:.2px;
+    }
+
+    .header-left p{
+      color:var(--text-soft);
+      line-height:1.6;
+      font-size:15px;
+    }
+
+    .card{
+      padding:22px;
+    }
+
+    .card-title{
+      font-size:22px;
+      color:var(--title);
+      margin-bottom:8px;
+    }
+
+    .card-subtitle{
+      color:var(--text-soft);
+      line-height:1.6;
+      font-size:14px;
+      margin-bottom:16px;
     }
 
     .muted{
-      color:var(--muted);
-      line-height:1.5;
+      color:var(--text-soft);
+      line-height:1.6;
+      font-size:14px;
     }
 
-    .logout{
+    .btn{
+      height:var(--btn-h);
       border:none;
-      background:#444;
-      color:#fff;
-      padding:12px 16px;
-      border-radius:12px;
-      cursor:pointer;
-      font-weight:bold;
+      border-radius:14px;
+      padding:0 18px;
       font-size:14px;
+      font-weight:800;
+      cursor:pointer;
+      transition:var(--transition);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      white-space:nowrap;
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
+    }
+
+    .btn-logout{
+      background:linear-gradient(135deg,#4b5563 0%, #374151 100%);
+      color:#fff;
+      min-width:130px;
+    }
+
+    .btn-accept{
+      flex:1;
+      min-width:200px;
+      background:linear-gradient(135deg,var(--ok) 0%, var(--ok-2) 100%);
+      color:#fff;
+      box-shadow:0 10px 20px rgba(25,135,84,.18);
+    }
+
+    .btn-reject{
+      flex:1;
+      min-width:200px;
+      background:linear-gradient(135deg,var(--bad) 0%, var(--bad-2) 100%);
+      color:#fff;
+      box-shadow:0 10px 20px rgba(220,53,69,.18);
+    }
+
+    .profile-card{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:18px;
+      border-radius:18px;
+      background:linear-gradient(180deg,#ffffff 0%, #f9fbfd 100%);
+      border:1px solid var(--line);
+    }
+
+    .profile-icon{
+      width:52px;
+      height:52px;
+      border-radius:16px;
+      background:var(--brand-soft);
+      color:var(--brand-dark);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:22px;
+      font-weight:900;
+      flex-shrink:0;
     }
 
     .route{
       border:1px solid var(--line);
-      border-radius:18px;
-      padding:18px;
-      background:#fcfcfd;
+      border-radius:22px;
+      padding:20px;
+      background:linear-gradient(180deg,#ffffff 0%, #fbfcfe 100%);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.65);
+    }
+
+    .route-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-bottom:18px;
+      padding-bottom:14px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .route-head-left h3{
+      margin:0 0 6px;
+      font-size:22px;
+      color:var(--title);
+    }
+
+    .route-head-left p{
+      color:var(--text-soft);
+      font-size:14px;
+      line-height:1.6;
+    }
+
+    .status-chip{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 14px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      white-space:nowrap;
+    }
+
+    .status-pending{
+      background:var(--pending-bg);
+      border:1px solid var(--pending-border);
+      color:var(--pending-text);
+    }
+
+    .status-accepted{
+      background:var(--ok-bg);
+      border:1px solid var(--ok-border);
+      color:var(--ok);
+    }
+
+    .status-rejected{
+      background:var(--bad-bg);
+      border:1px solid var(--bad-border);
+      color:var(--bad);
     }
 
     .grid{
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-      gap:12px;
-      margin-top:12px;
+      grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+      gap:14px;
     }
 
     .box{
-      padding:14px;
-      border-radius:14px;
+      padding:16px;
+      border-radius:16px;
       background:#fff;
       border:1px solid var(--line);
+      min-height:96px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
     }
 
     .box .lbl{
       font-size:12px;
       text-transform:uppercase;
-      color:var(--muted);
-      margin-bottom:6px;
-      font-weight:bold;
-      letter-spacing:.04em;
+      letter-spacing:.05em;
+      color:var(--text-soft);
+      margin-bottom:8px;
+      font-weight:800;
     }
 
     .box .val{
-      font-size:18px;
-      font-weight:bold;
+      font-size:19px;
+      line-height:1.35;
+      font-weight:800;
       color:var(--text);
+      word-break:break-word;
+    }
+
+    .box .val.small{
+      font-size:15px;
+      font-weight:700;
+      color:#344054;
     }
 
     .actions{
       display:flex;
       gap:12px;
-      margin-top:18px;
+      margin-top:20px;
       flex-wrap:wrap;
     }
 
-    .btn{
-      flex:1;
-      min-width:180px;
-      border:none;
-      padding:14px;
-      border-radius:12px;
-      cursor:pointer;
-      font-weight:bold;
-      color:#fff;
-      font-size:15px;
-    }
-
-    .accept{
-      background:linear-gradient(135deg,#198754 0%, #2bb673 100%);
-    }
-
-    .reject{
-      background:linear-gradient(135deg,#dc3545 0%, #ff5c6c 100%);
-    }
-
     .msg{
-      margin-top:12px;
-      font-weight:bold;
-      min-height:20px;
+      min-height:22px;
+      margin-top:14px;
+      font-weight:800;
+      line-height:1.5;
+      font-size:14px;
     }
 
-    .erro{color:#c62828}
-    .ok{color:#2e7d32}
+    .erro{
+      color:#c62828;
+    }
+
+    .ok{
+      color:#2e7d32;
+    }
 
     .empty{
-      padding:18px;
-      border:1px dashed #d8dee7;
-      border-radius:16px;
-      background:#fafbfc;
-      color:var(--muted);
+      padding:24px;
+      border:1px dashed #d7dde8;
+      border-radius:18px;
+      background:linear-gradient(180deg,#fcfdff 0%, #f8fafc 100%);
+      color:var(--text-soft);
       text-align:center;
-      line-height:1.6;
+      line-height:1.7;
       word-break:break-word;
+      font-size:14px;
     }
 
     .accepted-banner{
       margin-top:20px;
-      padding:16px;
+      padding:16px 18px;
       background:var(--ok-bg);
       border:1px solid var(--ok-border);
-      border-radius:12px;
-      font-weight:bold;
+      border-radius:14px;
+      font-weight:800;
       color:var(--ok);
       text-align:center;
+      line-height:1.5;
     }
 
-    @media (max-width: 700px){
-      body{ padding:16px; }
-      .header h1{ font-size:28px; }
+    .rejected-banner{
+      margin-top:20px;
+      padding:16px 18px;
+      background:var(--bad-bg);
+      border:1px solid var(--bad-border);
+      border-radius:14px;
+      font-weight:800;
+      color:var(--bad);
+      text-align:center;
+      line-height:1.5;
+    }
+
+    @media (max-width: 760px){
+      body{
+        padding:16px;
+      }
+
+      .header{
+        padding:18px;
+      }
+
+      .card{
+        padding:18px;
+      }
+
+      .header-left h1{
+        font-size:30px;
+      }
+
+      .btn-logout,
+      .btn-accept,
+      .btn-reject{
+        width:100%;
+      }
+
+      .actions{
+        flex-direction:column;
+      }
+    }
+
+    @media (max-width: 520px){
+      .header-left h1{
+        font-size:27px;
+      }
+
+      .route-head-left h3{
+        font-size:20px;
+      }
+
+      .box .val{
+        font-size:17px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="header">
-      <div>
+      <div class="header-left">
         <h1>Minha Rota</h1>
-        <div class="muted">Acompanhe sua rota disponível e responda.</div>
+        <p>Acompanhe sua rota disponível, veja os detalhes e responda diretamente pelo painel.</p>
       </div>
-      <button class="logout" id="btnSair" type="button">Sair</button>
+
+      <button class="btn btn-logout" id="btnSair" type="button">Sair</button>
     </div>
 
     <div class="card">
-      <div id="perfilInfo" class="muted">Carregando vínculo...</div>
+      <div class="card-title">Meu vínculo</div>
+      <div class="card-subtitle">Informações do motorista vinculado à sua conta.</div>
+
+      <div class="profile-card">
+        <div class="profile-icon">👤</div>
+        <div id="perfilInfo" class="muted">Carregando vínculo...</div>
+      </div>
     </div>
 
     <div class="card">
-      <h2 style="margin-top:0;">Rota disponível</h2>
+      <div class="card-title">Rota disponível</div>
+      <div class="card-subtitle">Abaixo estão as informações da rota atual disponível para você.</div>
+
       <div id="rotaArea" class="muted">Carregando rota...</div>
       <div class="msg" id="msg"></div>
     </div>
@@ -227,6 +456,14 @@
       if (s === "rejected") return "RECUSADA";
       if (s === "pending") return "PENDENTE";
       return status || "-";
+    }
+
+    function classeStatus(status) {
+      const s = String(status || "").toLowerCase();
+
+      if (s === "accepted") return "status-accepted";
+      if (s === "rejected") return "status-rejected";
+      return "status-pending";
     }
 
     async function carregarDashboard() {
@@ -302,6 +539,17 @@
 
         rotaArea.innerHTML = `
           <div class="route">
+            <div class="route-head">
+              <div class="route-head-left">
+                <h3>Detalhes da rota</h3>
+                <p>Confira as informações abaixo antes de responder.</p>
+              </div>
+
+              <div class="status-chip ${classeStatus(rota.status)}">
+                ${textoStatus(rota.status)}
+              </div>
+            </div>
+
             <div class="grid">
               <div class="box">
                 <div class="lbl">Cluster</div>
@@ -320,7 +568,7 @@
 
               <div class="box">
                 <div class="lbl">Enviado em</div>
-                <div class="val" style="font-size:15px;">
+                <div class="val small">
                   ${rota.sent_at ? new Date(rota.sent_at).toLocaleString() : "-"}
                 </div>
               </div>
@@ -328,17 +576,21 @@
 
             ${rota.status === 'pending' ? `
               <div class="actions">
-                <button class="btn accept" type="button" onclick="responderRota('accepted')">
+                <button class="btn btn-accept" type="button" onclick="responderRota('accepted')">
                   Aceitar rota
                 </button>
 
-                <button class="btn reject" type="button" onclick="responderRota('rejected')">
+                <button class="btn btn-reject" type="button" onclick="responderRota('rejected')">
                   Recusar rota
                 </button>
               </div>
-            ` : `
+            ` : rota.status === 'accepted' ? `
               <div class="accepted-banner">
-                ✔ Você já aceitou esta rota
+                ✔ Você já aceitou esta rota.
+              </div>
+            ` : `
+              <div class="rejected-banner">
+                ✖ Você recusou esta rota.
               </div>
             `}
           </div>
